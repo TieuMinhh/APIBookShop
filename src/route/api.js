@@ -126,10 +126,31 @@ const initAPIRoute = (app) => {
   // router.get('/account/lichsudathang/:id_account/:status', OrderController.updateStatus)
 
   //Xem đon đặt hàng
+  router.get("/order", auth.authenUser, OrderController.getOrder);
+
+  //Xem danh sách địa chỉ đặt hàng
   router.get(
-    "/order",
-    // auth.authenUser,
-    OrderController.getOrder
+    "/delivery-address",
+    auth.authenUser,
+    OrderController.getAddressDelivery
+  );
+  //Tạo thêm địa chỉ giao hàng
+  router.post(
+    "/create-delivery-address",
+    auth.authenUser,
+    OrderController.createAddressDelivery
+  );
+  //Chỉnh sửa địa chỉ giao hàng
+  router.post(
+    "/update-delivery-address/:id_address",
+    auth.authenUser,
+    OrderController.updateAddressDelivery
+  );
+  //Xoá địa chỉ giao hàng
+  router.delete(
+    "/delete-delivery-address/:id_address",
+    auth.authenUser,
+    OrderController.deleteAddressDelivery
   );
 
   //Thanh toán đơn hàng
@@ -178,7 +199,7 @@ const initAPIRoute = (app) => {
     APIController.createNewProduct
   );
   router.post(
-    "/admin/updateProduct/:id_product/:id_category",
+    "/admin/updateProduct/:id_product",
     upload.single("images"),
     //auth.authenAdmin,
     APIController.updateProduct
@@ -189,23 +210,59 @@ const initAPIRoute = (app) => {
     APIController.deleteProduct
   );
 
+  //Nhà xuất bản
+  router.get("/admin/publishing-company?:id", APIController.getNXB);
+  router.post(
+    "/admin/create-nxb",
+    //auth.authenAdmin,
+    APIController.createNewNXB
+  );
+  router.post(
+    "/admin/update-nxb/:id_company",
+    //auth.authenAdmin,
+    APIController.updateNXB
+  );
+  router.delete(
+    "/admin/delete-nxb/:id_company",
+    //auth.authenAdmin,
+    APIController.deleteNXB
+  );
+
+  //Giảm giá sách
+  router.get("/admin/promotion-product?:id", APIController.getPromotionProduct);
+  router.post(
+    "/admin/create-promotion-product",
+    //auth.authenAdmin,
+    APIController.createNewPromotionProduct
+  );
+  router.post(
+    "/admin/update-promotion-product/:id_promotion",
+    //auth.authenAdmin,
+    APIController.updatePromotionProduct
+  );
+  router.delete(
+    "/admin/delete-promotion-product/:id_promotion",
+    //auth.authenAdmin,
+    APIController.deletePromotionProduct
+  );
+
   //Danh mục
   router.get("/testthu", APIController.getCategoryPhong);
   router.get("/category?:id", APIController.getCategory);
   router.post(
-    "/admin/createcategory",
+    "/admin/create-category",
     //auth.authenAdmin,
     upload.single("logo"),
     APIController.createNewCategory
   );
   router.post(
-    "/admin/updateCategory?:id",
+    "/admin/update-category?:id",
     //auth.authenAdmin,
     upload.single("logo"),
     APIController.updateCategory
   );
   router.delete(
-    "/admin/deleteCategory?:id_category",
+    "/admin/delete-category?:id_category",
     //auth.authenAdmin,
     APIController.deleteCategory
   );

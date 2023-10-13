@@ -66,7 +66,7 @@ let selectAccount = (id_account) => {
         c.quantity,
         p.name_product,
         p.price,
-        (p.price - (p.price * pc.percentage)) AS price_reducing,
+        (p.price - (p.price * pc.percentage /100)) AS price_reducing,
         p.images,
         p.detail
     FROM
@@ -169,12 +169,7 @@ let addCart = (id_account, id_product, quantity) => {
   });
 };
 
-/*Ví dụ:
-     Size S 360 ml 
-    Size M 500 ml
-    Size L 700ml
-    
-    Note lại ý tưởng:
+/* Note lại ý tưởng:
     Khi thêm sp vào cart:
     Size bắt buộc
     1. Check xem sp có trong cart chưa(Cùng size) 

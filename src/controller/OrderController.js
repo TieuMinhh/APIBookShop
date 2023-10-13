@@ -5,112 +5,6 @@ import auth from "../middleware/auth";
 //Xem đơn đặt hàng
 //note ý tưởng
 //insert into order_detail(id_product,mount) values(?,?) where id_account=token
-//Thêm từng cái và xóa từng cái
-// let insertOrder = (id_account, discount_id, id_address) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       let order = await pool.execute(
-//         // "insert into order(id_account,status,discount_id,id_address) values(?,1,?,?)",
-//         "INSERT INTO order (id_account, status, discount_id, id_address) VALUES (?, 1, ?, ?)",
-//         [id_account, discount_id, id_address]
-//       );
-//       let [check] = await pool.execute(
-//         "SELECT * FROM order ORDER BY id_order DESC LIMIT 1"
-//       );
-//       if (check[0].id_account != id_account) {
-//         resolve("Đơn hàng trống");
-//       } else {
-//         resolve(check[0]);
-//       }
-//     } catch (err) {
-//       console.log(err);
-//       reject(err);
-//     }
-//   });
-// };
-
-// let listDetailOrder = (id_order, id_account) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       let [listDetail] = await pool.execute(
-//         "select id_order,p.id_product,quantity,name_product,price from cart c,order o,product p where c.id_account = o.id_account and p.id_product = c.id_product and o.status=1 and c.id_account=? and id_order=?",
-//         [id_account, id_order]
-//       );
-//       if (!listDetail[0]) {
-//         resolve(false);
-//       } else {
-//         resolve(listDetail);
-//       }
-//     } catch (err) {
-//       reject(err);
-//     }
-//   });
-// };
-
-// let insertDetailOrder = (id_order, id_product, quantity, price_reducing) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       let [insert] = await pool.execute(
-//         "insert into order_detail(id_order,id_product,quantity,price_reducing) values(?,?,?,?)",
-//         [id_order, id_product, quantity, price_reducing]
-//       );
-//       console.log(">>> check insert: ", insert);
-//       resolve(insert);
-//     } catch (err) {
-//       reject(err);
-//     }
-//   });
-// };
-
-// let datHangNew = async (req, res) => {
-//   let id_account = auth.tokenData(req).id_account;
-//   let arr = req.body.arr;
-//   let discount_id = req.id_discount_id || null;
-//   let id_address = req.body.id_address || null;
-//   let check = await checkCart(id_account);
-//   if (check) {
-//     let insert = await insertOrder(id_account, discount_id, id_address);
-//     let id_order = insert.id_order;
-//     let listDetails = await listDetailOrder(id_order, id_account); //list cart giỏ
-
-//     console.log("Id_order:", id_order);
-//     console.log(">>Check list detail: ", arr);
-//     if (arr) {
-//       for (let i in arr) {
-//         //(id_order, id_product, quantity, name, price, size)
-//         console.log(
-//           id_order,
-//           arr[i].id_product,
-//           arr[i].quantity,
-//           arr[i].price_reducing
-//         );
-//         let insert = await insertDetailOrder(
-//           id_order,
-//           arr[i].id_product,
-//           arr[i].quantity,
-//           arr[i].price_reducing
-//         );
-//         // (id_account, id_product)
-//         console.log(insert);
-//       }
-//       for (let i in listDetails) {
-//         let del = await deleteCart(id_account, listDetails[i].id_product);
-//       }
-//       // console.log(arr, 'Và:', listDetails);
-//     } else {
-//       return res.status(400).json({
-//         message: "Đặt hàng thất bại!",
-//       });
-//     }
-//   } else {
-//     return res.status(400).json({
-//       message: "Giỏ hàng của bạn trống nên không thể đặt hàng!",
-//     });
-//   }
-//   return res.status(200).json({
-//     order: "Đặt hàng thành công!",
-//   });
-// };
 
 let insertOrder = (id_account, discount_id, id_address) => {
   return new Promise(async (resolve, reject) => {
@@ -271,6 +165,7 @@ let deleteCart = (id_account, id_product) => {
     }
   });
 };
+
 let checkCart = (id_account) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -635,61 +530,74 @@ let orderHistory = async (req, res) => {
     let [response] = await pool.execute(
       `
       SELECT
-        temp_result.id_order,
-        temp_result.order_time,
-        temp_result.id_account,
-        temp_result.status,
-        temp_result.discount_id,
-        CONCAT('[', GROUP_CONCAT(
-          JSON_OBJECT(
-            'id_product', temp_result.id_product,
-            'name_product', temp_result.name_product,
-            'quantity', temp_result.quantity,
-            'detail', temp_result.detail,
-            'images', temp_result.images,
-            'price', temp_result.price,
-            'price_reducing',temp_result.price_reducing
-          )
-        ), ']') AS products,
-        a.name AS account_name,
-        a.address AS account_address,
-        a.phone AS account_phone,
-        temp_result.percentage AS discount_percentage
-      FROM (
-        SELECT
-          a.id_order,
-          a.id_product,
-          a.quantity,
-          b.order_time,
-          b.id_account,
-          b.status,
-          b.discount_id,
-          c.name_product,
-          c.detail,
-          c.images,
-          c.price,
-          CAST((c.price - (c.price * pc.percentage)) AS SIGNED) as price_reducing,
-          d.discount_code,
-          d.percentage
-        FROM
-          order_detail a
-        JOIN
-          orders b ON a.id_order = b.id_order
-        JOIN
-          product c ON a.id_product = c.id_product
-        LEFT JOIN
-          discount d ON b.discount_id = d.discount_id
-        LEFT JOIN
-          product_promotion pc ON pc.id_promotion = c.id_promotion
-        WHERE
-          b.id_account = ? AND b.status = ?
-        ORDER BY
-          b.order_time DESC
-      ) AS temp_result
+      temp_result.id_order,
+      temp_result.order_time,
+      temp_result.id_account,
+      temp_result.status,
+      temp_result.discount_id,
+      CONCAT('[', GROUP_CONCAT(
+        JSON_OBJECT(
+          'id_product', temp_result.id_product,
+          'name_product', temp_result.name_product,
+          'quantity', temp_result.quantity,
+          'detail', temp_result.detail,
+          'images', temp_result.images,
+          'price', temp_result.price,
+          'price_reducing',temp_result.price_reducing
+        )
+      ), ']') AS products,
+      a.name AS account_name,
+      a.address AS account_address,
+      a.phone AS account_phone,
+      temp_result.percentage AS discount_percentage,
+      da.id_address AS id_delivery_address,
+      da.name_address AS name_address,
+      da.name_receiver,
+      da.phone_receiver
+    FROM (
+      SELECT DISTINCT
+        a.id_order,
+        a.id_product,
+        a.quantity,
+        b.order_time,
+        b.id_account,
+        b.status,
+        b.discount_id,
+        c.name_product,
+        c.detail,
+        c.images,
+        c.price,
+        CAST((c.price - (c.price * pc.percentage)) AS SIGNED) as price_reducing,
+        d.discount_code,
+        d.percentage,
+        da.id_address,
+        da.name_address,
+        da.name_receiver,
+        da.phone_receiver
+      FROM
+        order_detail a
+      JOIN
+        orders b ON a.id_order = b.id_order
+      JOIN
+        product c ON a.id_product = c.id_product
       LEFT JOIN
-        account a ON temp_result.id_account = a.id_account
-      GROUP BY
-        temp_result.id_order;
+        discount d ON b.discount_id = d.discount_id
+      LEFT JOIN
+        product_promotion pc ON pc.id_promotion = c.id_promotion
+      LEFT JOIN
+        delivery_address da ON da.id_address = b.id_address
+      WHERE
+        b.id_account = ? AND b.status = ?
+      ORDER BY
+        b.order_time DESC
+    ) AS temp_result
+    LEFT JOIN
+      account a ON temp_result.id_account = a.id_account
+    LEFT JOIN
+      delivery_address da ON temp_result.id_account = da.id_account
+    GROUP BY
+      temp_result.id_order;
+
     `,
       [id_account, status]
     );
@@ -705,6 +613,10 @@ let orderHistory = async (req, res) => {
       status: row.status,
       discount_id: row.discount_id,
       discount_percentage: row.discount_percentage,
+      id_address: row.id_address,
+      name_address: row.name_address,
+      name_receiver: row.name_receiver,
+      phone_receiver: row.phone_receiver,
       products: JSON.parse(row.products),
     }));
 
@@ -735,6 +647,105 @@ let orderAccount = async (req, res) => {
   }
 };
 
+const getAddressDelivery = async (req, res) => {
+  try {
+    const id_account = auth.tokenData(req).id_account;
+
+    // Truy vấn địa chỉ giao hàng từ cơ sở dữ liệu dựa trên id tài khoản
+    let [response] = await pool.execute(
+      "select * from delivery_address where id_account=?",
+      [id_account]
+    );
+
+    return res.json({
+      listAddress: response, // Trả về danh sách địa chỉ giao hàng
+    });
+  } catch (err) {
+    console.error(err);
+    return res.sendStatus(500);
+  }
+};
+
+const createAddressDelivery = async (req, res) => {
+  try {
+    const id_account = auth.tokenData(req).id_account;
+    const { name_address, name_receiver, phone_receiver } = req.body;
+
+    // Thực hiện việc tạo địa chỉ giao hàng trong cơ sở dữ liệu
+    const [result] = await pool.execute(
+      "INSERT INTO delivery_address (id_account, name_address,name_receiver,phone_receiver) VALUES (?,?,?,?)",
+      [id_account, name_address, name_receiver, phone_receiver]
+    );
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        message: "Địa chỉ giao hàng đã được tạo thành công.",
+      });
+    } else {
+      return res.json({
+        message: "Tạo địa chỉ giao hàng thất bại.",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.sendStatus(500);
+  }
+};
+
+const updateAddressDelivery = async (req, res) => {
+  try {
+    let id_account = auth.tokenData(req).id_account;
+    let id_address = req.params.id_address;
+    let { name_address, name_receiver, phone_receiver } = req.body;
+
+    // Thực hiện truy vấn SQL để cập nhật địa chỉ giao hàng
+    const [result] = await pool.execute(
+      "UPDATE delivery_address SET name_address = ?, name_receiver = ?, phone_receiver = ? WHERE id_account = ? AND id_address = ?",
+      [name_address, name_receiver, phone_receiver, id_account, id_address]
+    );
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        message: "Địa chỉ giao hàng đã được cập nhật thành công.",
+      });
+    } else {
+      return res.json({
+        message:
+          "Không tìm thấy địa chỉ giao hàng hoặc cập nhật không thành công.",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.sendStatus(500);
+  }
+};
+
+const deleteAddressDelivery = async (req, res) => {
+  try {
+    const id_account = auth.tokenData(req).id_account;
+    const id_address = req.params.id_address; // Lấy id_address cần xóa từ tham số URL
+
+    // Thực hiện truy vấn SQL để xóa địa chỉ giao hàng
+    const [result] = await pool.execute(
+      "DELETE FROM delivery_address WHERE id_account = ? AND id_address = ?",
+      [id_account, id_address]
+    );
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        message: "Địa chỉ giao hàng đã được xóa thành công.",
+      });
+    } else {
+      return res.json({
+        message: "Không tìm thấy địa chỉ giao hàng hoặc xóa không thành công.",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.sendStatus(500);
+  }
+};
+
 module.exports = {
   getOrder,
   getDetailOrder,
@@ -748,4 +759,8 @@ module.exports = {
   datHangNew,
   orderHistory,
   orderAccount,
+  getAddressDelivery,
+  createAddressDelivery,
+  updateAddressDelivery,
+  deleteAddressDelivery,
 };
