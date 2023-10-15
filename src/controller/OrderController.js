@@ -265,7 +265,7 @@ let detail = (id_order) => {
         p.price AS original_price,
         od.quantity,
         CASE
-            WHEN p.id_promotion IS NOT NULL THEN p.price - (p.price * pp.percentage)
+            WHEN p.id_promotion IS NOT NULL THEN p.price - (p.price * pp.percentage / 100)
             ELSE p.price
         END AS price_reducing
     FROM
@@ -405,12 +405,13 @@ let xemDoanhSo = async (req, res) => {
   let [listDoanhSo] = await pool.execute(
     // "SELECT month(order_time) as thang,sum(total) as total_doanhso FROM order o,doanhthu d where o.id_order=d.id_order and year(order_time)=? GROUP BY month(order_time)",
     `SELECT 
-        MONTH(order_time) AS months, 
-        SUM(total) AS total_revenue
+    MONTH(o.order_time) AS months, 
+    SUM(d.total) AS total_revenue
     FROM orders o
     JOIN revenue d ON o.id_order = d.id_order
-    WHERE YEAR(order_time) = ?
-    GROUP BY MONTH(order_time)
+    WHERE YEAR(o.order_time) = ?
+    GROUP BY MONTH(o.order_time);
+
     `,
     [year]
   );
@@ -567,7 +568,7 @@ let orderHistory = async (req, res) => {
         c.detail,
         c.images,
         c.price,
-        CAST((c.price - (c.price * pc.percentage)) AS SIGNED) as price_reducing,
+        CAST((c.price - (c.price * pc.percentage / 100)) AS SIGNED) as price_reducing,
         d.discount_code,
         d.percentage,
         da.id_address,
@@ -746,6 +747,44 @@ const deleteAddressDelivery = async (req, res) => {
   }
 };
 
+const mostBuyProduct = async (req, res) => {
+  try {
+    let [most] = await pool.execute(
+      `SELECT *, p.name_product, SUM(od.quantity) AS total_purchased,CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
+      FROM product p
+      JOIN order_detail od ON p.id_product = od.id_product
+      JOIN orders o ON od.id_order = o.id_order
+      JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
+      WHERE o.status = 0
+      GROUP BY p.id_product
+      HAVING SUM(od.quantity) > 5
+      ORDER BY total_purchased DESC`
+    );
+    return res.status(200).json({
+      listMostBuyProduct: most,
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const mostReducingProduct = async (req, res) => {
+  try {
+    let [most] = await pool.execute(
+      `SELECT *, p.id_product, p.name_product, pp.percentage,CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
+      FROM product p
+      JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
+      WHERE pp.percentage > 25;
+      `
+    );
+    return res.status(200).json({
+      listMostReducingProduct: most,
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 module.exports = {
   getOrder,
   getDetailOrder,
@@ -763,4 +802,6 @@ module.exports = {
   createAddressDelivery,
   updateAddressDelivery,
   deleteAddressDelivery,
+  mostBuyProduct,
+  mostReducingProduct,
 };

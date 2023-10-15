@@ -103,7 +103,7 @@ const initAPIRoute = (app) => {
   );
 
   //API đặt hàng mới hoàn toàn
-  router.post("/dathang", OrderController.datHangNew);
+  router.post("/order-pay", OrderController.datHangNew);
 
   //API sửa thông tin cá nhân
   router.put(
@@ -114,12 +114,12 @@ const initAPIRoute = (app) => {
 
   //API lịch sử đơn đặt hàng
   router.get(
-    "/account/lichsudathang/:id_account/:status",
+    "/account/order-history-by-status/:id_account/:status",
     auth.authenUser,
     OrderController.orderHistory
   );
   router.get(
-    "/account/donhangtheotaikhoan/:id_account",
+    "/account/order-history-by-account/:id_account",
     auth.authenUser,
     OrderController.orderAccount
   );
@@ -156,9 +156,17 @@ const initAPIRoute = (app) => {
   //Thanh toán đơn hàng
   router.post("/pay", auth.authenUser, CartController.pay);
 
-  router.post("/search", UserController.searchProduct);
-
+  // Tìm kiếm sản phẩm và danh mục
+  router.post("/search-product", UserController.searchProduct);
   router.post("/search-category", UserController.searchCategory);
+  router.post(
+    "/search-product-by-category",
+    UserController.searchProductByCategory
+  );
+  router.post(
+    "/search-product-by-id-category",
+    UserController.searchProductByIdCategory
+  );
 
   //---------------Admin----------------------------
   //Lấy tất cả danh sách tài khoản khách hàng
@@ -167,22 +175,22 @@ const initAPIRoute = (app) => {
   //Mã giảm giá
   router.get("/discount?:id", APIController.getDiscount);
   router.post(
-    "/admin/createDiscount",
+    "/admin/create-discount",
     //auth.authenAdmin,
     APIController.createNewDiscount
   );
   router.post(
-    "/admin/updateDiscount/:discount_id",
+    "/admin/update-discount/:discount_id",
     //auth.authenAdmin,
     APIController.updateDiscount
   );
   router.delete(
-    "/admin/deleteDiscount/:discount_id",
+    "/admin/delete-discount/:discount_id",
     //auth.authenAdmin,
     APIController.deleteDiscount
   );
   router.get(
-    "/getDiscountByCode",
+    "/get-discount-by-code",
     //auth.authenUser,
     APIController.getDiscountByCode
   );
@@ -269,30 +277,30 @@ const initAPIRoute = (app) => {
 
   //Đơn hàng
   router.get("/testthu-product", APIController.getProductPhong);
-  router.get("/admin/getorders", OrderController.getOrderNew); //auth.authenAdmin
-  router.get("/admin/detailorder/:id_order", OrderController.getDetailOrder);
+  router.get("/admin/get-orders", OrderController.getOrderNew); //auth.authenAdmin
+  router.get("/admin/detail-order/:id_order", OrderController.getDetailOrder);
   // router.get("/admin/detail/:id_order", OrderController.detail);
+  router.post("/admin/confirm-order/:id_order", OrderController.xacNhanDonHang);
   router.post(
-    "/admin/xacnhandonhang/:id_order",
-    OrderController.xacNhanDonHang
-  );
-  router.post(
-    "/admin/hoanthanhdonhang/:id_order",
+    "/admin/complete-order/:id_order",
     OrderController.hoanThanhDonHang
   );
-  router.post("/admin/huydonhang/:id_order", OrderController.huyDonHang);
+  router.post("/admin/cancel-order/:id_order", OrderController.huyDonHang);
 
   //Đăng nhập của admin
   router.post("/admin/login", APIController.handleAdminLogin);
 
   //Doanh số
-  router.get("/admin/revenue-year", OrderController.xemDoanhSo);
+  router.get("/admin/revenue-year/:year", OrderController.xemDoanhSo);
 
   //Doanh số theo tháng
   router.get(
     "/admin/revenue-month/:month/:year",
     OrderController.xemDoanhSoThang
   );
+
+  router.get("/most-by-product", OrderController.mostBuyProduct);
+  router.get("/most-reducing-product", OrderController.mostReducingProduct);
   // router.get('/admin/deleteProduct/:id_product', (req) => {
   //     console.log('Hello');
   // }

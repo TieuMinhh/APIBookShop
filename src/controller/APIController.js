@@ -15,16 +15,16 @@ let handleLogin = async (req, res) => {
   console.log("Phong: ", req.body);
   //console.log(req.body);
   //Trả về dữ liệu người dùng
-  let userData = await userService.handleUserLogin(email, password);
+  let accessToken = await userService.handleUserLogin(email, password);
   return res.status(200).json({
     // errorCode: 0,
     // message: 'Hello Phong',
     // email: email,
     // test: 'Đăng nhập thành công'
-    errCode: userData.errCode,
-    message: userData.message,
-    userData: userData.user,
-    role_id: userData.role_id,
+    errCode: accessToken.errCode,
+    message: accessToken.message,
+    accessToken: accessToken.user,
+    role_id: accessToken.role_id,
   });
 };
 
@@ -40,16 +40,16 @@ let handleAdminLogin = async (req, res) => {
   console.log("Phong: ", req.body);
   //console.log(req.body);
   //Trả về dữ liệu người dùng
-  let userData = await userService.handleAdminLogin(email, password);
+  let accessToken = await userService.handleAdminLogin(email, password);
   return res.status(200).json({
     // errorCode: 0,
     // message: 'Hello Phong',
     // email: email,
     // test: 'Đăng nhập thành công'
-    errCode: userData.errCode,
-    message: userData.message,
-    userData: userData.user,
-    role_id: userData.role_id,
+    errCode: accessToken.errCode,
+    message: accessToken.message,
+    accessToken: accessToken.user,
+    role_id: accessToken.role_id,
   });
 };
 
