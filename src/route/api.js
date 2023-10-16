@@ -254,8 +254,11 @@ const initAPIRoute = (app) => {
     APIController.deletePromotionProduct
   );
 
+  // Phan trang
+  router.get("/category-by-pages?:page", APIController.getCategoryByPages);
+  router.get("/product-by-pages?:page", APIController.getProductByPages);
+
   //Danh mục
-  router.get("/testthu", APIController.getCategoryPhong);
   router.get("/category?:id", APIController.getCategory);
   router.post(
     "/admin/create-category",
@@ -276,7 +279,6 @@ const initAPIRoute = (app) => {
   );
 
   //Đơn hàng
-  router.get("/testthu-product", APIController.getProductPhong);
   router.get("/admin/get-orders", OrderController.getOrderNew); //auth.authenAdmin
   router.get("/admin/detail-order/:id_order", OrderController.getDetailOrder);
   // router.get("/admin/detail/:id_order", OrderController.detail);

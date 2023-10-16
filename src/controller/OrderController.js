@@ -126,9 +126,9 @@ let datHangNew = async (req, res) => {
             arr[i].quantity
           );
         }
-        for (let i in listDetails) {
-          let del = await deleteCart(id_account, listDetails[i].id_product);
-        }
+        // for (let i in listDetails) {
+        //   let del = await deleteCart(id_account, listDetails[i].id_product);
+        // }
         return res.status(200).json({
           order: "Đặt hàng thành công!",
         });
@@ -262,6 +262,8 @@ let detail = (id_order) => {
         a.address AS customer_address,
         a.phone AS customer_phone,
         da.name_address AS delivery_address,
+        da.name_receiver,
+        da.phone_receiver,
         p.price AS original_price,
         od.quantity,
         CASE
@@ -310,7 +312,7 @@ let getDetailOrder = async (req, res) => {
   console.log(details);
   let total = 0;
   details.map((item, index) => {
-    total += item.quantity * item.price;
+    total += item.quantity * item.price_reducing;
   });
   console.log("tổng: ", total);
   return res.status(200).json({

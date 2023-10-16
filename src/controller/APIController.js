@@ -755,7 +755,8 @@ let getRated = async (req, res) => {
   }
 };
 
-let getCategoryPhong = async (req, res) => {
+// Phân trang
+let getCategoryByPages = async (req, res) => {
   //thực thi lênh sql
   try {
     let page = req.query.page; //Trang mấy
@@ -782,36 +783,68 @@ let getCategoryPhong = async (req, res) => {
   }
 };
 
-let getProductPhong = async (req, res) => {
-  //thực thi lênh sql
+// let getProductByPages = async (req, res) => {
+//   //thực thi lênh sql
+//   try {
+//     let page = req.query.page; //Trang mấy
+//     let page_size = 12;
+//     page = parseInt(page);
+//     let soLuongBoQua = (page - 1) * page_size;
+
+//     console.log("id query: ", page, "So luong bo qua:", soLuongBoQua);
+//     let response = "";
+//     if (!page) {
+//       [response] = await pool.execute(
+//         "select *,p.name_product as name_product from product p,category c where p.id_category=c.id_category"
+//       );
+//     } else {
+//       [response] = await pool.execute(
+//         "select *,p.name_product as name_product from product p,category c where p.id_category=c.id_category"
+//       );
+//       console.log(response);
+//       response = response.slice(soLuongBoQua, page_size + soLuongBoQua);
+//     }
+//     // response = response.slice(4, 5)
+//     return res.status(200).json({
+//       listProduct: response,
+//       page_size: page_size,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
+let getProductByPages = async (req, res) => {
   try {
     let page = req.query.page; //Trang mấy
-    let page_size = 6;
+    let page_size = 12;
     page = parseInt(page);
-    let soLuongBoQua = (page - 1) * page_size;
 
-    console.log("id query: ", page, "So luong bo qua:", soLuongBoQua);
-    let response = "";
+    console.log("id query: ", page);
+
+    let response = [];
     if (!page) {
       [response] = await pool.execute(
-        "select *,p.name_product as name_product from product p,category c where p.id_category=c.id_category"
+        "SELECT *, p.name_product as name_product FROM product p JOIN category c ON p.id_category=c.id_category LIMIT ?",
+        [page_size]
       );
     } else {
+      let offset = (page - 1) * page_size;
       [response] = await pool.execute(
-        "select *,p.name_product as name_product from product p,category c where p.id_category=c.id_category"
+        "SELECT *, p.name_product as name_product FROM product p JOIN category c ON p.id_category=c.id_category LIMIT ? OFFSET ?",
+        [page_size, offset]
       );
-      console.log(response);
-      response = response.slice(soLuongBoQua, page_size + soLuongBoQua);
     }
-    // response = response.slice(4, 5)
+
     return res.status(200).json({
       listProduct: response,
-      page_size: page_size,
+      page_size: response.length,
     });
   } catch (error) {
     console.log(error);
   }
 };
+
 module.exports = {
   handleLogin,
   getProduct,
@@ -835,8 +868,8 @@ module.exports = {
   handleAdminLogin,
   rateComment,
   getRated,
-  getCategoryPhong,
-  getProductPhong,
+  getCategoryByPages,
+  getProductByPages,
   getDiscount,
   createNewDiscount,
   updateDiscount,
