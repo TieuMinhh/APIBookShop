@@ -817,7 +817,7 @@ let getCategoryByPages = async (req, res) => {
 let getProductByPages = async (req, res) => {
   try {
     let page = req.query.page; //Trang mấy
-    let page_size = 12;
+    let page_size = 8;
     page = parseInt(page);
 
     console.log("id query: ", page);
@@ -825,13 +825,13 @@ let getProductByPages = async (req, res) => {
     let response = [];
     if (!page) {
       [response] = await pool.execute(
-        "SELECT *, p.name_product as name_product FROM product p JOIN category c ON p.id_category=c.id_category LIMIT ?",
+        "select *,p.name_product as name_product, CAST((p.price - (p.price * pc.percentage / 100)) AS SIGNED) as price_reducing from product p,category c, product_promotion pc,publishing_company e where p.id_category=c.id_category and p.id_promotion=pc.id_promotion and e.id_company=p.id_company LIMIT ?",
         [page_size]
       );
     } else {
       let offset = (page - 1) * page_size;
       [response] = await pool.execute(
-        "SELECT *, p.name_product as name_product FROM product p JOIN category c ON p.id_category=c.id_category LIMIT ? OFFSET ?",
+        "select *,p.name_product as name_product, CAST((p.price - (p.price * pc.percentage / 100)) AS SIGNED) as price_reducing from product p,category c, product_promotion pc,publishing_company e where p.id_category=c.id_category and p.id_promotion=pc.id_promotion and e.id_company=p.id_company LIMIT ? OFFSET ?",
         [page_size, offset]
       );
     }
