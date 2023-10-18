@@ -246,59 +246,103 @@ let selectIdOrder = (id_account) => {
 let detail = (id_order) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let [detail] = await pool.execute(
-        // "select * from order_detail where id_order=?",
-        // [id_order]
+      const [detail] = await pool.execute(
         `SELECT
-        o.id_order,
-        o.order_time,
-        o.id_account,
-        o.status,
-        d.percentage AS discount_percentage,
-        c.name_product,
-        c.detail,
-        c.images,
-        a.name AS customer_name,
-        a.address AS customer_address,
-        a.phone AS customer_phone,
-        da.name_address AS delivery_address,
-        da.name_receiver,
-        da.phone_receiver,
-        p.price AS original_price,
-        od.quantity,
-        CASE
-            WHEN p.id_promotion IS NOT NULL THEN p.price - (p.price * pp.percentage / 100)
-            ELSE p.price
-        END AS price_reducing
-    FROM
-        orders o
-    INNER JOIN
-        order_detail od ON o.id_order = od.id_order
-    INNER JOIN
-        product c ON od.id_product = c.id_product
-    INNER JOIN
-        account a ON o.id_account = a.id_account
-    LEFT JOIN
-        discount d ON o.discount_id = d.discount_id
-    LEFT JOIN
-        delivery_address da ON o.id_address = da.id_address
-    LEFT JOIN
-        product_promotion pp ON c.id_promotion = pp.id_promotion
-    LEFT JOIN
-        product p ON c.id_product = p.id_product
-    WHERE
-        o.id_order = ?;    
-    `,
+            temp_result.id_order,
+            temp_result.order_time,
+            temp_result.id_account,
+            temp_result.status,
+            temp_result.discount_id,
+            CONCAT('[', GROUP_CONCAT(
+                JSON_OBJECT(
+                    'id_product', temp_result.id_product,
+                    'name_product', temp_result.name_product,
+                    'quantity', temp_result.quantity,
+                    'detail', temp_result.detail,
+                    'images', temp_result.images,
+                    'original_price', temp_result.price,
+                    'price_reducing',temp_result.price_reducing
+                )
+            ), ']') AS products,
+            a.name AS account_name,
+            a.address AS account_address,
+            a.phone AS account_phone,
+            temp_result.percentage AS discount_percentage,
+            da.id_address AS id_delivery_address,
+            da.name_address AS name_address,
+            da.name_receiver,
+            da.phone_receiver
+        FROM (
+            SELECT DISTINCT
+                a.id_order,
+                a.id_product,
+                a.quantity,
+                b.order_time,
+                b.id_account,
+                b.status,
+                b.discount_id,
+                c.name_product,
+                c.detail,
+                c.images,
+                c.price,
+                CAST((c.price - (c.price * pc.percentage / 100)) AS SIGNED) as price_reducing,
+                d.discount_code,
+                d.percentage,
+                da.id_address,
+                da.name_address,
+                da.name_receiver,
+                da.phone_receiver
+            FROM
+                order_detail a
+            JOIN
+                orders b ON a.id_order = b.id_order
+            JOIN
+                product c ON a.id_product = c.id_product
+            LEFT JOIN
+                discount d ON b.discount_id = d.discount_id
+            LEFT JOIN
+                product_promotion pc ON pc.id_promotion = c.id_promotion
+            LEFT JOIN
+                delivery_address da ON da.id_address = b.id_address
+            ORDER BY
+                b.order_time DESC
+            ) AS temp_result
+        LEFT JOIN
+            account a ON temp_result.id_account = a.id_account
+        LEFT JOIN
+            delivery_address da ON temp_result.id_account = da.id_account
+        WHERE
+            temp_result.id_order = ?;
+        `,
         [id_order]
       );
-      console.log(detail[0]);
-      if (!detail) {
+
+      if (detail.length === 0) {
         resolve("Chi tiết đơn hàng không tồn tại");
       } else {
-        resolve(detail);
+        // Biến đổi dữ liệu sau khi truy vấn
+        const listOrder = detail.map((row) => ({
+          id_order: row.id_order,
+          order_time: row.order_time,
+          id_account: row.id_account,
+          name: row.account_name,
+          address: row.account_address,
+          phone: row.account_phone,
+          status: row.status,
+          discount_id: row.discount_id,
+          discount_percentage: row.discount_percentage,
+          id_address: row.id_address,
+          name_address: row.name_address,
+          name_receiver: row.name_receiver,
+          phone_receiver: row.phone_receiver,
+          products: JSON.parse(row.products),
+        }));
+
+        console.log(detail[0]);
+        resolve(listOrder);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       reject(err);
     }
   });
@@ -600,7 +644,6 @@ let orderHistory = async (req, res) => {
       delivery_address da ON temp_result.id_account = da.id_account
     GROUP BY
       temp_result.id_order;
-
     `,
       [id_account, status]
     );
