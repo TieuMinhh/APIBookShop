@@ -5,17 +5,17 @@ let mail = {};
 let transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "minbao1412@gmail.com",
-    pass: "dinhbaominh4869",
+    user: "huynhthanhphong12a1@gmail.com",
+    pass: "ahjzocagubfjvaiu",
   },
 });
 
 mail.sendVerification = (userEmail, verification) => {
   let mailOptions = {
-    from: "minbao1412@gmail.com",
+    from: "huynhthanhphong12a1",
     to: userEmail,
     subject: "Khôi phục mật khẩu",
-    text: "Mã xác nhận của ngài là : " + verification,
+    text: "Mã xác nhận của ngài là: " + verification,
   };
   transporter.sendMail(mailOptions);
 };
