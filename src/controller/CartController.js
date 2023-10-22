@@ -1,42 +1,6 @@
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
 
-//Chức năng thanh toán
-let pay = async (req, res) => {
-  try {
-    let id_account = auth.tokenData(req).id_account;
-    //select name,price,images from cart c,product p where c.id_account=id_account and c.id_product =p.id_product
-    console.log("id account: ", id_account);
-    let check = await checkCart(id_account);
-    console.log("Check exist", check.exist);
-    if (!check.exist) {
-      return res.status(200).json({
-        message: "Chưa có sản phẩm để thanh toán",
-      });
-    }
-
-    let listProduct = await selectAccount(id_account);
-    console.log(">>>> Check list: ", listProduct);
-    let totalPrice = 0;
-
-    for (let i in listProduct) {
-      let productPrice = listProduct[i].quantity * listProduct[i].price;
-      totalPrice += productPrice;
-    }
-
-    let deleteProduct = await pool.execute(
-      "delete from cart where id_account= ?",
-      [id_account]
-    );
-
-    return res.status(200).json({
-      total: totalPrice,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 //===============Xem giỏ hàng trước khi thanh toán
 let checkCart = (id_account) => {
   return new Promise(async (resolve, reject) => {
@@ -342,7 +306,6 @@ module.exports = {
   getCart,
   addProduct,
   deleteProductFromCart,
-  pay,
   addCategory,
   DecrementProductFromCart,
   IncrementProductFromCart,

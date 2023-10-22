@@ -5,6 +5,41 @@ import auth from "../middleware/auth";
 //Xem đơn đặt hàng
 //note ý tưởng
 //insert into order_detail(id_product,mount) values(?,?) where id_account=token
+//Chức năng thanh toán
+let pay = async (req, res) => {
+  try {
+    let id_account = auth.tokenData(req).id_account;
+    //select name,price,images from cart c,product p where c.id_account=id_account and c.id_product =p.id_product
+    console.log("id account: ", id_account);
+    let check = await checkCart(id_account);
+    console.log("Check exist", check.exist);
+    if (!check.exist) {
+      return res.status(200).json({
+        message: "Chưa có sản phẩm để thanh toán",
+      });
+    }
+
+    let listProduct = await selectAccount(id_account);
+    console.log(">>>> Check list: ", listProduct);
+    let totalPrice = 0;
+
+    for (let i in listProduct) {
+      let productPrice = listProduct[i].quantity * listProduct[i].price;
+      totalPrice += productPrice;
+    }
+
+    let deleteProduct = await pool.execute(
+      "delete from cart where id_account= ?",
+      [id_account]
+    );
+
+    return res.status(200).json({
+      total: totalPrice,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 let insertOrder = (id_account, discount_id, id_address) => {
   return new Promise(async (resolve, reject) => {
@@ -28,38 +63,6 @@ let insertOrder = (id_account, discount_id, id_address) => {
   });
 };
 
-// let listDetailOrder = (id_order, id_account) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       let [listDetail] = await pool.execute(
-//         "SELECT o.id_order, c.id_product, c.quantity, p.name_product, p.price_reducing FROM cart c JOIN `orders` o ON c.id_account = o.id_account JOIN product p ON p.id_product = c.id_product WHERE o.status = 1 AND c.id_account = ? AND id_order = ?",
-//         [id_account, id_order]
-//       );
-//       if (!listDetail[0]) {
-//         resolve(false);
-//       } else {
-//         resolve(listDetail);
-//       }
-//     } catch (err) {
-//       reject(err);
-//     }
-//   });
-// };
-
-// let insertDetailOrder = (id_order, id_product, quantity, price_reducing) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       let [insert] = await pool.execute(
-//         "INSERT INTO order_detail (id_order, id_product, quantity, price_reducing) VALUES (?, ?, ?, ?)",
-//         [id_order, id_product, quantity, price_reducing]
-//       );
-//       console.log(">>> check insert: ", insert);
-//       resolve(insert);
-//     } catch (err) {
-//       reject(err);
-//     }
-//   });
-// };
 let listDetailOrder = (id_order, id_account) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -338,7 +341,7 @@ let detail = (id_order) => {
           products: JSON.parse(row.products),
         }));
 
-        console.log(detail[0]);
+        console.log("detail[0] :", detail[0]);
         resolve(listOrder);
       }
     } catch (err) {
@@ -379,7 +382,7 @@ let getOrderNew = async (req, res) => {
   }
 };
 
-let xacNhanDonHang = (req, res) => {
+let confirmOrder = (req, res) => {
   try {
     let id_order = req.params.id_order;
     let update = pool.execute(
@@ -395,7 +398,7 @@ let xacNhanDonHang = (req, res) => {
   }
 };
 
-let hoanThanhDonHang = async (req, res) => {
+let completeOrder = async (req, res) => {
   try {
     //let id_account = auth.tokenData(req).id_account
     let { id_order } = req.params;
@@ -427,7 +430,7 @@ let hoanThanhDonHang = async (req, res) => {
   }
 };
 
-let huyDonHang = (req, res) => {
+let cancelOrder = (req, res) => {
   try {
     let id_order = req.params.id_order;
     let update = pool.execute(
@@ -492,81 +495,6 @@ let xemDoanhSoThang = async (req, res) => {
     listDoanhSoThang: listDoanhSoThang,
   });
 };
-
-// let orderHistory = async (req, res) => {
-//   try {
-//     let id_account = req.params.id_account;
-//     let status = req.params.status;
-//     console.log(id_account);
-//     let [response] = await pool.execute(
-//       `SELECT
-//       temp_result.id_order,
-//       temp_result.order_time,
-//       temp_result.status,
-//       temp_result.discount_id,
-//       JSON_OBJECT(
-//           'id_product', temp_result.id_product,
-//           'name_product', temp_result.name_product,
-//           'quantity', temp_result.quantity,
-//           'detail', temp_result.detail,
-//           'images', temp_result.images
-//       ) AS products,
-//       a.name AS account_name,
-//       a.address AS account_address
-//   FROM
-//       (SELECT
-//           a.id_order,
-//           a.id_product,
-//           a.quantity,
-//           b.order_time,
-//           b.status,
-//           b.discount_id,
-//           c.name_product,
-//           c.detail,
-//           c.images,
-//           d.discount_code,
-//           d.percentage,
-//           b.id_account -- Thêm cột id_account vào kết quả
-//       FROM
-//           order_detail a
-//       JOIN
-//           orders b ON a.id_order = b.id_order
-//       JOIN
-//           product c ON a.id_product = c.id_product
-//       LEFT JOIN
-//           discount d ON b.discount_id = d.discount_id
-//       WHERE
-//           b.id_account = ? AND b.status = ?
-//       ORDER BY
-//           b.order_time DESC) AS temp_result
-//   LEFT JOIN
-//       account a ON temp_result.id_account = a.id_account
-//   GROUP BY
-//       temp_result.id_order;
-
-//     `,
-//       [id_account, status]
-//     );
-
-//     // Biến đổi dữ liệu sau khi truy vấn
-//     const listOrder = response.map((row) => ({
-//       id_order: row.id_order,
-//       order_time: row.order_time,
-//       id_account: row.id_account,
-//       name: row.account_name,
-//       address: row.account_address,
-//       status: row.status,
-//       discount_id: row.discount_id,
-//       products: JSON.parse(`[${row.products}]`),
-//     }));
-
-//     return res.status(200).json({
-//       listOrder,
-//     });
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
 
 let orderHistory = async (req, res) => {
   try {
@@ -693,160 +621,18 @@ let orderAccount = async (req, res) => {
   }
 };
 
-const getAddressDelivery = async (req, res) => {
-  try {
-    const id_account = auth.tokenData(req).id_account;
-
-    // Truy vấn địa chỉ giao hàng từ cơ sở dữ liệu dựa trên id tài khoản
-    let [response] = await pool.execute(
-      "select * from delivery_address where id_account=?",
-      [id_account]
-    );
-
-    return res.json({
-      listAddress: response, // Trả về danh sách địa chỉ giao hàng
-    });
-  } catch (err) {
-    console.error(err);
-    return res.sendStatus(500);
-  }
-};
-
-const createAddressDelivery = async (req, res) => {
-  try {
-    const id_account = auth.tokenData(req).id_account;
-    const { name_address, name_receiver, phone_receiver } = req.body;
-
-    // Thực hiện việc tạo địa chỉ giao hàng trong cơ sở dữ liệu
-    const [result] = await pool.execute(
-      "INSERT INTO delivery_address (id_account, name_address,name_receiver,phone_receiver) VALUES (?,?,?,?)",
-      [id_account, name_address, name_receiver, phone_receiver]
-    );
-
-    if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được tạo thành công.",
-      });
-    } else {
-      return res.json({
-        message: "Tạo địa chỉ giao hàng thất bại.",
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    return res.sendStatus(500);
-  }
-};
-
-const updateAddressDelivery = async (req, res) => {
-  try {
-    let id_account = auth.tokenData(req).id_account;
-    let id_address = req.params.id_address;
-    let { name_address, name_receiver, phone_receiver } = req.body;
-
-    // Thực hiện truy vấn SQL để cập nhật địa chỉ giao hàng
-    const [result] = await pool.execute(
-      "UPDATE delivery_address SET name_address = ?, name_receiver = ?, phone_receiver = ? WHERE id_account = ? AND id_address = ?",
-      [name_address, name_receiver, phone_receiver, id_account, id_address]
-    );
-
-    if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được cập nhật thành công.",
-      });
-    } else {
-      return res.json({
-        message:
-          "Không tìm thấy địa chỉ giao hàng hoặc cập nhật không thành công.",
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    return res.sendStatus(500);
-  }
-};
-
-const deleteAddressDelivery = async (req, res) => {
-  try {
-    const id_account = auth.tokenData(req).id_account;
-    const id_address = req.params.id_address; // Lấy id_address cần xóa từ tham số URL
-
-    // Thực hiện truy vấn SQL để xóa địa chỉ giao hàng
-    const [result] = await pool.execute(
-      "DELETE FROM delivery_address WHERE id_account = ? AND id_address = ?",
-      [id_account, id_address]
-    );
-
-    if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được xóa thành công.",
-      });
-    } else {
-      return res.json({
-        message: "Không tìm thấy địa chỉ giao hàng hoặc xóa không thành công.",
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    return res.sendStatus(500);
-  }
-};
-
-const mostBuyProduct = async (req, res) => {
-  try {
-    let [most] = await pool.execute(
-      `SELECT *, p.name_product, SUM(od.quantity) AS total_purchased,CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
-      FROM product p
-      JOIN order_detail od ON p.id_product = od.id_product
-      JOIN orders o ON od.id_order = o.id_order
-      JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
-      WHERE o.status = 0
-      GROUP BY p.id_product
-      HAVING SUM(od.quantity) > 5
-      ORDER BY total_purchased DESC`
-    );
-    return res.status(200).json({
-      listMostBuyProduct: most,
-    });
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-const mostReducingProduct = async (req, res) => {
-  try {
-    let [most] = await pool.execute(
-      `SELECT *, p.id_product, p.name_product, pp.percentage,CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
-      FROM product p
-      JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
-      WHERE pp.percentage > 25;
-      `
-    );
-    return res.status(200).json({
-      listMostReducingProduct: most,
-    });
-  } catch (e) {
-    console.log(e);
-  }
-};
-
 module.exports = {
+  pay,
   getOrder,
   getDetailOrder,
   detail,
   getOrderNew,
-  xacNhanDonHang,
-  hoanThanhDonHang,
-  huyDonHang,
+  confirmOrder,
+  completeOrder,
+  cancelOrder,
   xemDoanhSo,
   xemDoanhSoThang,
   datHangNew,
   orderHistory,
   orderAccount,
-  getAddressDelivery,
-  createAddressDelivery,
-  updateAddressDelivery,
-  deleteAddressDelivery,
-  mostBuyProduct,
-  mostReducingProduct,
 };

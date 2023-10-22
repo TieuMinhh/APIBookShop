@@ -130,12 +130,15 @@ let updateInfo = async (req, res) => {
     let { name, phone, address } = req.body;
     let { id_account } = req.params;
     console.log(name, phone, address, id_account);
+
+    // Kiểm tra xem thông tin có bị bỏ trống hay không
     if (!name || !phone || !address) {
       return res.status(400).json({
         message: "Không được bỏ trống thông tin",
       });
     }
-    // let update = await handleUpdate(name, phone, address, avatar, id_account)
+
+    // Tiếp tục xử lý nếu không có thông tin bị bỏ trống
     let update = await pool.execute(
       "update account set name=?,phone=?,address=? where id_account=?",
       [name, phone, address, id_account]
@@ -145,6 +148,9 @@ let updateInfo = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi trong quá trình cập nhật thông tin.",
+    });
   }
 };
 
@@ -167,93 +173,6 @@ let listAccount = async (req, res) => {
     return res.status(200).json({ listAccount: list });
   } catch (err) {
     console.log(err);
-  }
-};
-
-//Search product and category
-let searchProduct = async (req, res) => {
-  try {
-    console.log("Xin chào");
-    let { name } = req.body;
-    console.log("body", name);
-    let [search] = await pool.execute(
-      "select *,CAST((p.price - (p.price * pc.percentage / 100)) AS SIGNED) as price_reducing from product p, product_promotion pc where p.id_promotion = pc.id_promotion and name_product like ?",
-      ["%" + name + "%"]
-    );
-    return res.status(200).json({
-      message: search,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-let searchCategory = async (req, res) => {
-  try {
-    console.log("Xin chào");
-    let { name } = req.body;
-    console.log("body", name);
-    let [search] = await pool.execute(
-      "select * from category where name_category like ?",
-      ["%" + name + "%"]
-    );
-    return res.status(200).json({
-      message: search,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-let searchProductByCategory = async (req, res) => {
-  try {
-    console.log("Xin chào");
-    let { name } = req.body;
-    console.log("body", name);
-    let [search] = await pool.execute(
-      "select *,CAST((p.price - (p.price * pc.percentage / 100)) AS SIGNED) as price_reducing from category c,product p,product_promotion pc where p.id_promotion = pc.id_promotion and c.id_category = p.id_category and name_category like ?",
-      ["%" + name + "%"]
-    );
-    return res.status(200).json({
-      message: search,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-// let checkInfo =async () =>{
-//     return new Promise((resolve,reject) =>{
-//         try {
-//             let [info] = await pool.execute('select * from account where id_account=?', [auth.tokenData(req).id_account])
-//         } catch (e) {
-//             reject(e)
-//         }
-//     })
-// }
-
-let searchProductByIdCategory = async (req, res) => {
-  try {
-    let { id_category } = req.body || null;
-    console.log(id_category);
-    if (id_category === undefined || id_category === null) {
-      return res.status(400).json({
-        message: "id_category is missing or undefined",
-      });
-    }
-
-    let [search] = await pool.execute(
-      "SELECT *, CAST((p.price - (p.price * pc.percentage / 100)) AS SIGNED) AS price_reducing FROM product p, product_promotion pc WHERE p.id_promotion = pc.id_promotion AND p.id_category = ?",
-      [id_category]
-    );
-    return res.status(200).json({
-      message: search,
-    });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
   }
 };
 
@@ -320,9 +239,5 @@ module.exports = {
   updateInfo,
   listAccount,
   getInfo,
-  searchProduct,
-  searchCategory,
-  searchProductByCategory,
-  searchProductByIdCategory,
   changePasswordNew,
 };

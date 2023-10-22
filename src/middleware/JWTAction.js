@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 require("dotenv").config();
 
 const createJWT = (data) => {
-  let payload = { name: "Phong", nganh: "công nghệ thông tin" };
+  let payload = { name: "Minh", nganh: "công nghệ thông tin" };
   let key = process.env.JWT_SECRECT;
   let token = null;
   try {

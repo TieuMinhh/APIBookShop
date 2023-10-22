@@ -2,7 +2,17 @@ import express from "express";
 import configViewEngine from "./configs/viewEngine";
 import initWebRouter from "./route/web";
 import connection from "./configs/connectDatabse";
-import initAPIRoute from "./route/api";
+import adminRoute from "./route/admin";
+import discountRoute from "./route/discount";
+import categoryRoute from "./route/category";
+import productRoute from "./route/product";
+import publishingRoute from "./route/publishing";
+import deliveryRoute from "./route/delivery";
+import searchRoute from "./route/search";
+import userRoute from "./route/user";
+import cartRoute from "./route/cart";
+import orderRoute from "./route/order";
+import paginationRoute from "./route/pagination";
 require("dotenv").config();
 var cors = require("cors");
 //test JWT
@@ -27,7 +37,18 @@ configViewEngine(app);
 
 initWebRouter(app);
 
-initAPIRoute(app);
+adminRoute(app);
+discountRoute(app);
+categoryRoute(app);
+productRoute(app);
+publishingRoute(app);
+deliveryRoute(app);
+searchRoute(app);
+userRoute(app);
+cartRoute(app);
+orderRoute(app);
+paginationRoute(app);
+
 app.use((req, res) => {
   res.send("404 NOT FOUND");
 });

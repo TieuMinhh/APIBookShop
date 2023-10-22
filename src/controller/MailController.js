@@ -58,7 +58,7 @@ let deleteCode = (id_verification) => {
 };
 
 let autoDeleteCode = (id_verification) => {
-  setTimeout(deleteCode, 60000, id_verification);
+  setTimeout(deleteCode, 100000, id_verification);
 };
 
 let forgotPassword = async (req, res) => {
@@ -166,7 +166,7 @@ let confirm = async (req, res) => {
     if (!exist) {
       return res.status(200).json({
         errCode: 1,
-        message: "Mã xác minh hết hiệu lực",
+        message: "Mã xác minh đã hết hiệu lực",
       });
     } else {
       // return res.status(200).json({
@@ -183,12 +183,12 @@ let confirm = async (req, res) => {
         console.log(">>>>>>>>Check password 2 :  ", accsessToken);
         return res.status(200).json({
           errCode: 0,
-          message: "Thành công! Bạn hãy nhập mật khẩu mới",
+          message: "Thành công! Mời ngài hãy nhập mật khẩu mới",
           id_account: id_account,
         });
       } else {
         return res.status(500).json({
-          message: "Sai password",
+          message: "Mã xác thực không chính xác, vui lòng nhập lại",
         });
       }
     }
