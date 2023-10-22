@@ -1,6 +1,5 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
-import auth from "../middleware/auth";
 
 //Danh mục
 let getCategory = async (req, res) => {

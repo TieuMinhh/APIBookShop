@@ -7,7 +7,7 @@ let handleUserLogin = (email, password) => {
     try {
       let userData = {};
 
-      //check email tồn tại
+      // check email tồn tại
       let isExist = await checkUserEmail(email);
 
       if (isExist) {
@@ -15,25 +15,28 @@ let handleUserLogin = (email, password) => {
           "SELECT * FROM account where email=?",
           [email]
         );
-        // console.log('>>>CHeck', password, rows[0].password);
 
-        //So sánh password
+        // Kiểm tra trạng thái tài khoản
+        if (rows[0].status === 1) {
+          userData.errCode = 3;
+          userData.message =
+            "Tài khoản đã bị khóa. Vui lòng donate cho quản trị viên để được mở khoá";
+          return resolve(userData);
+        }
+
+        // So sánh password
         let check = bcrypt.compareSync(password, rows[0].password);
 
         if (check) {
-          let data = { ...rows[0] }; //lấy object
-          //let data = rows[0]
+          let data = { ...rows[0] }; // lấy object
           userData.errCode = 0;
           userData.message = "Đăng nhập thành công";
           userData.role_id = data.role_id;
-          // delete user.password;
           delete data["password"]; // bỏ cái password nhạy cảm
-          userData.user = createJWTTest(data); //đổi dữ liệu ng dùng thành tokten
-          //userData.user = createJWTTest(data)
-          // console.log("kjklj");
+          userData.user = createJWTTest(data);
         } else {
           userData.errCode = 2;
-          userData.message = "Sai mật khẩu.Vui lòng kiểm tra lại";
+          userData.message = "Sai mật khẩu. Vui lòng kiểm tra lại";
         }
       } else {
         userData.errCode = 1;

@@ -1,7 +1,7 @@
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
 
-//===============Xem giỏ hàng trước khi thanh toán
+//Chức năng thanh toán
 let checkCart = (id_account) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -19,7 +19,6 @@ let checkCart = (id_account) => {
     }
   });
 };
-
 let selectAccount = (id_account) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -135,9 +134,9 @@ let addCart = (id_account, id_product, quantity) => {
 
 /* Note lại ý tưởng:
     Khi thêm sp vào cart:
-    Size bắt buộc
-    1. Check xem sp có trong cart chưa(Cùng size) 
-    2. Chưa cùng thì thêm 
+    1. Check xem sp có trong cart chưa
+    2. Nếu sản phẩm đã có thì cộng số lượng vào
+    3. Chưa cùng thì thêm vào giỏ hàng
 
     */
 let addProduct = async (req, res) => {

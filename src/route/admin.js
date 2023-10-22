@@ -24,6 +24,19 @@ const adminRoute = (app) => {
   //Đăng nhập của admin
   router.post("/admin/login", APIController.handleAdminLogin);
 
+  //Khoá/Mở khoá tài khoản
+
+  router.post(
+    "/admin/block-user/:id_account",
+    auth.authenAdmin,
+    APIController.blockAccount
+  );
+  router.post(
+    "/admin/unblock-user/:id_account",
+    auth.authenAdmin,
+    APIController.unblockAccount
+  );
+
   return app.use("/api/v1/", router);
 };
 

@@ -2,6 +2,8 @@ import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
 import userService from "../services/userService";
 import auth from "../middleware/auth";
+import mail from "../services/mail";
+
 //API login
 let handleLogin = async (req, res) => {
   let { email, password } = req.body;
@@ -119,9 +121,91 @@ let getRated = async (req, res) => {
   }
 };
 
+let blockAccount = async (req, res) => {
+  const { id_account } = req.params;
+  const { reason } = req.body;
+
+  try {
+    // Lấy email từ cơ sở dữ liệu
+    const [rows] = await pool.execute(
+      "SELECT email FROM account WHERE id_account = ?",
+      [id_account]
+    );
+
+    if (rows.length === 0) {
+      // Xử lý trường hợp không có hàng được trả về
+      return res.status(404).json({
+        message: "Không tìm thấy tài khoản",
+      });
+    }
+
+    const userEmail = rows[0].email;
+    console.log("userEmail là:", userEmail);
+
+    // Thực hiện hành động khoá tài khoản tại đây
+    await pool.execute("UPDATE account SET status = 1 WHERE id_account = ?", [
+      id_account,
+    ]);
+
+    // Gửi mail thông báo
+    mail.sendNotificationBlock(userEmail, reason); // Sử dụng email lấy được từ cơ sở dữ liệu
+
+    return res.status(200).json({
+      message: "Khoá tài khoản thành công và đã gửi thông báo",
+    });
+  } catch (err) {
+    console.log("email là :");
+    console.error("Lỗi khi khoá tài khoản:", err);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi thực hiện khoá tài khoản và gửi thông báo",
+    });
+  }
+};
+
+let unblockAccount = async (req, res) => {
+  const { id_account } = req.params;
+  const { reason } = req.body;
+
+  try {
+    // Lấy email từ cơ sở dữ liệu
+    const [rows] = await pool.execute(
+      "SELECT email FROM account WHERE id_account = ?",
+      [id_account]
+    );
+
+    if (rows.length === 0) {
+      // Xử lý trường hợp không có hàng được trả về
+      return res.status(404).json({
+        message: "Không tìm thấy tài khoản",
+      });
+    }
+    const userEmail = rows[0].email;
+    console.log("userEmail là :", userEmail);
+
+    // Thực hiện hành động khoá tài khoản tại đây
+    await pool.execute("UPDATE account SET status = 0 WHERE id_account = ?", [
+      id_account,
+    ]);
+
+    // Gửi mail thông báo
+    mail.sendNotificationUnblock(userEmail, reason); // Sử dụng email lấy được từ cơ sở dữ liệu
+
+    return res.status(200).json({
+      message: "Mở khoá tài khoản thành công và đã gửi thông báo",
+    });
+  } catch (err) {
+    console.error("Lỗi khi khoá tài khoản:", err);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi thực hiện khoá tài khoản và gửi thông báo",
+    });
+  }
+};
+
 module.exports = {
   handleLogin,
   handleAdminLogin,
   rateComment,
   getRated,
+  blockAccount,
+  unblockAccount,
 };
