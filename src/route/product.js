@@ -43,7 +43,7 @@ const productRoute = (app) => {
   );
   router.get("/most-by-product", ProductController.mostBuyProduct);
   router.get("/most-reducing-product", ProductController.mostReducingProduct);
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default productRoute;

@@ -9,7 +9,7 @@ const paginationRoute = (app) => {
     PaginationController.getCategoryByPages
   );
   router.get("/product-by-pages?:page", PaginationController.getProductByPages);
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default paginationRoute;

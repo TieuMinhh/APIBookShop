@@ -37,7 +37,7 @@ const categoryRoute = (app) => {
     auth.authenAdmin,
     CategoryController.deleteCategory
   );
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default categoryRoute;

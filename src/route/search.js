@@ -15,7 +15,7 @@ const searchRoute = (app) => {
     SearchController.searchProductByIdCategory
   );
 
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default searchRoute;

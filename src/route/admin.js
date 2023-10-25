@@ -37,7 +37,7 @@ const adminRoute = (app) => {
     APIController.unblockAccount
   );
 
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default adminRoute;

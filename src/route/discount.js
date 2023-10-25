@@ -48,7 +48,7 @@ const discountRoute = (app) => {
     DiscountController.deletePromotionProduct
   );
 
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default discountRoute;

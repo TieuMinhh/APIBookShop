@@ -45,7 +45,7 @@ const orderRoute = (app) => {
     OrderController.xemDoanhSoThang
   );
 
-  return app.use("/api/v1/", router);
+  return app.use("/api/", router);
 };
 
 export default orderRoute;
