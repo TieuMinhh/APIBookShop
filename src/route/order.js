@@ -37,12 +37,12 @@ const orderRoute = (app) => {
   router.post("/admin/cancel-order/:id_order", OrderController.cancelOrder);
 
   //Doanh số
-  router.get("/admin/revenue-year/:year", OrderController.xemDoanhSo);
+  router.get("/admin/revenue-year/:year", OrderController.getRevenue);
 
   //Doanh số theo tháng
   router.get(
     "/admin/revenue-month/:month/:year",
-    OrderController.xemDoanhSoThang
+    OrderController.getRevenueByMonths
   );
 
   return app.use("/api/", router);

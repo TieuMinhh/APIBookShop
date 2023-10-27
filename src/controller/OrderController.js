@@ -352,21 +352,34 @@ let detail = (id_order) => {
 };
 
 let getDetailOrder = async (req, res) => {
-  //let id_account = auth.tokenData(req).id_account
   let { id_order } = req.params;
-  //let details = await detail(id_order)
-  let details = await detail(id_order);
-  console.log(details);
-  let total = 0;
-  details.map((item, index) => {
-    total += item.quantity * item.price_reducing;
-  });
-  console.log("tổng: ", total);
-  return res.status(200).json({
-    // detailOrder: details
-    listOrderDetail: details,
-    total,
-  });
+  try {
+    let details = await detail(id_order);
+    let total = 0;
+    let shipFee = 20000;
+
+    if (Array.isArray(details)) {
+      details.forEach((order) => {
+        let percentage = order.discount_percentage || 0; // Giả sử discount_percentage là thuộc tính được trả về từ câu truy vấn
+        console.log("giảm giá:", percentage);
+        order.products.forEach((product) => {
+          total +=
+            product.quantity * product.price_reducing -
+            (product.quantity * product.price_reducing * percentage) / 100;
+        });
+      });
+    }
+
+    return res.status(200).json({
+      listOrderDetail: details,
+      total: total + shipFee,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng",
+    });
+  }
 };
 
 let getOrderNew = async (req, res) => {
@@ -404,16 +417,23 @@ let completeOrder = async (req, res) => {
     let { id_order } = req.params;
     //let details = await detail(id_order)
     let details = await detail(id_order);
-    console.log(details);
     let total = 0;
-    details.map((item, index) => {
-      total += item.quantity * item.price;
-    });
-    console.log("tổng: ", total);
-    //('insert into orders(id_account,status) values(?,1)', [id_account])
-    let updatedoanhthu = pool.execute(
+    let shipFee = 20000;
+
+    if (Array.isArray(details)) {
+      details.forEach((order) => {
+        let percentage = order.discount_percentage || 0; // Giả sử discount_percentage là thuộc tính được trả về từ câu truy vấn
+        console.log("giảm giá:", percentage);
+        order.products.forEach((product) => {
+          total +=
+            product.quantity * product.price_reducing -
+            (product.quantity * product.price_reducing * percentage) / 100;
+        });
+      });
+    }
+    let updatedoanhthu = await pool.execute(
       "insert into revenue(id_order,total) values(?,?)",
-      [id_order, total]
+      [id_order, total + shipFee]
     );
     let update = pool.execute(
       "UPDATE orders SET status = 0 WHERE id_order = ?",
@@ -446,38 +466,40 @@ let cancelOrder = (req, res) => {
   }
 };
 
-let xemDoanhSo = async (req, res) => {
+let getRevenue = async (req, res) => {
   let year = req.query?.year || 2023;
-  //let details = await detail(id_order)
-  console.log("HEllo");
-  // let [listDoanhSo] = await pool.execute('SELECT * FROM doanhthu d,orders o where d.id_order=o.id_order')
-  let [listDoanhSo] = await pool.execute(
-    // "SELECT month(order_time) as thang,sum(total) as total_doanhso FROM order o,doanhthu d where o.id_order=d.id_order and year(order_time)=? GROUP BY month(order_time)",
-    `SELECT 
-    MONTH(o.order_time) AS months, 
-    SUM(d.total) AS total_revenue
-    FROM orders o
-    JOIN revenue d ON o.id_order = d.id_order
-    WHERE YEAR(o.order_time) = ?
-    GROUP BY MONTH(o.order_time);
 
-    `,
-    [year]
-  );
-  console.log(listDoanhSo);
-  return res.status(200).json({
-    // detailOrder: details
-    listDoanhSo: listDoanhSo,
-  });
+  try {
+    let [listRevenue] = await pool.execute(
+      `SELECT 
+        MONTH(o.order_time) AS months, 
+        SUM(d.total) AS total_revenue
+        FROM orders o
+        JOIN revenue d ON o.id_order = d.id_order
+        WHERE YEAR(o.order_time) = ?
+        GROUP BY MONTH(o.order_time);
+      `,
+      [year]
+    );
+
+    return res.status(200).json({
+      listRevenue: listRevenue,
+    });
+  } catch (error) {
+    console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi truy vấn cơ sở dữ liệu",
+    });
+  }
 };
 
-let xemDoanhSoThang = async (req, res) => {
+let getRevenueByMonths = async (req, res) => {
   let month = req.params?.month;
   let year = req.params?.year;
   //let details = await detail(id_order)
-  console.log("HEllo");
+  console.log("Hello");
   // let [listDoanhSo] = await pool.execute('SELECT * FROM doanhthu d,orders o where d.id_order=o.id_order')
-  let [listDoanhSoThang] = await pool.execute(
+  let [listRevenueByMonths] = await pool.execute(
     // "SELECT day(order_time) as ngay,sum(total) as total_doanhso FROM order o,doanhthu d where o.id_order=d.id_order and month(order_time)=? and year(order_time)=? GROUP BY day(order_time)",
     `SELECT 
         DAY(order_time) AS day, 
@@ -489,10 +511,10 @@ let xemDoanhSoThang = async (req, res) => {
     `,
     [month, year]
   );
-  console.log(listDoanhSoThang);
+  console.log(listRevenueByMonths);
   return res.status(200).json({
     // detailOrder: details
-    listDoanhSoThang: listDoanhSoThang,
+    listRevenueByMonths: listRevenueByMonths,
   });
 };
 
@@ -630,8 +652,8 @@ module.exports = {
   confirmOrder,
   completeOrder,
   cancelOrder,
-  xemDoanhSo,
-  xemDoanhSoThang,
+  getRevenue,
+  getRevenueByMonths,
   datHangNew,
   orderHistory,
   orderAccount,
