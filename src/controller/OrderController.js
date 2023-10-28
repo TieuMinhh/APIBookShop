@@ -518,6 +518,29 @@ let getRevenueByMonths = async (req, res) => {
   });
 };
 
+let getRevenueByDateToDate = async (req, res) => {
+  let { fromDate, toDate } = req.body; // Đầu vào: fromDate và toDate là ngày bạn muốn tính doanh thu
+
+  try {
+    let [revenue] = await pool.execute(
+      `SELECT SUM(d.total) AS total_revenue
+      FROM orders o
+      JOIN revenue d ON o.id_order = d.id_order
+      WHERE DATE(o.order_time) BETWEEN ? AND ?`,
+      [fromDate, toDate]
+    );
+
+    return res.status(200).json({
+      revenue: revenue[0].total_revenue || 0,
+    });
+  } catch (error) {
+    console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi truy vấn cơ sở dữ liệu",
+    });
+  }
+};
+
 let orderHistory = async (req, res) => {
   try {
     let id_account = req.params.id_account;
@@ -654,6 +677,7 @@ module.exports = {
   cancelOrder,
   getRevenue,
   getRevenueByMonths,
+  getRevenueByDateToDate,
   datHangNew,
   orderHistory,
   orderAccount,

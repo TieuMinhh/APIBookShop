@@ -17,6 +17,7 @@ require("dotenv").config();
 var cors = require("cors");
 //test JWT
 import { createJWT, verifyJWT } from "./middleware/JWTAction";
+import { PORT } from "./configs/config";
 
 const app = express();
 const port = 8081;
@@ -53,7 +54,7 @@ app.use((req, res) => {
   res.send("404 NOT FOUND");
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Example app listening on port localhost:${PORT}`);
   console.log("Server is running");
 });

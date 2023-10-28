@@ -36,13 +36,19 @@ const orderRoute = (app) => {
   router.post("/admin/complete-order/:id_order", OrderController.completeOrder);
   router.post("/admin/cancel-order/:id_order", OrderController.cancelOrder);
 
-  //Doanh số
+  //Doanh số theo năm
   router.get("/admin/revenue-year/:year", OrderController.getRevenue);
 
   //Doanh số theo tháng
   router.get(
     "/admin/revenue-month/:month/:year",
     OrderController.getRevenueByMonths
+  );
+
+  //Doanh số theo 1 khoảng thời gian nhất định
+  router.get(
+    "/admin/revenue-date-to-date",
+    OrderController.getRevenueByDateToDate
   );
 
   return app.use("/api/", router);
