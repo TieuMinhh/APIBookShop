@@ -1,6 +1,5 @@
 import express from "express";
 import configViewEngine from "./configs/viewEngine";
-import initWebRouter from "./route/web";
 import connection from "./configs/connectDatabse";
 import adminRoute from "./route/admin";
 import discountRoute from "./route/discount";
@@ -35,9 +34,6 @@ app.use(express.json());
 // createJWT()
 // verifyJWT('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUGhvbmciLCJuZ2FuaCI6ImPDtG5nIG5naOG7hyB0aMO0bmcgdGluIiwiaWF0IjoxNjYzNDkyMzg1fQ.cMItnm-utS7ybNFhustcGDUREMPVS9ZO6WJLbMryibQ')
 configViewEngine(app);
-
-initWebRouter(app);
-
 adminRoute(app);
 discountRoute(app);
 categoryRoute(app);
