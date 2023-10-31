@@ -294,15 +294,14 @@ let getDetail_1_Product = async (req, res) => {
 const mostBuyProduct = async (req, res) => {
   try {
     let [most] = await pool.execute(
-      `SELECT *, p.name_product, SUM(od.quantity) AS total_purchased,CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
-        FROM product p
-        JOIN order_detail od ON p.id_product = od.id_product
-        JOIN orders o ON od.id_order = o.id_order
-        JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
-        WHERE o.status = 0
-        GROUP BY p.id_product
-        HAVING SUM(od.quantity) > 5
-        ORDER BY total_purchased DESC`
+      `SELECT *, p.name_product, od.quantity AS total_purchased, 
+      CAST((p.price - (p.price * pp.percentage / 100)) AS SIGNED) as price_reducing
+      FROM product p
+      JOIN order_detail od ON p.id_product = od.id_product
+      JOIN orders o ON od.id_order = o.id_order
+      JOIN product_promotion pp ON p.id_promotion = pp.id_promotion
+      WHERE o.status = 0 AND od.quantity > 10
+      ORDER BY od.quantity DESC`
     );
     return res.status(200).json({
       listMostBuyProduct: most,
