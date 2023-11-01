@@ -31,7 +31,7 @@ let createNewPromotionProduct = async (req, res) => {
   // Kiểm tra trường hợp thông tin bị bỏ trống
   if (!percentage || !start_date || !end_date) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -46,7 +46,7 @@ let createNewPromotionProduct = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là giảm giá sách đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Thêm thất bại. Giảm giá sách đã tồn tại.",
       });
     }
@@ -78,7 +78,7 @@ let updatePromotionProduct = async (req, res) => {
   // Kiểm tra trường hợp thông tin bị bỏ trống
   if (!percentage || !start_date || !end_date) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -93,7 +93,7 @@ let updatePromotionProduct = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là phần trăm giảm giá sách đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message:
           "Sửa đổi không thành công. Phần trăm giảm giá sách đã tồn tại.",
       });
@@ -124,7 +124,6 @@ let deletePromotionProduct = async (req, res) => {
 
   if (!id_promotion) {
     return res.status(200).json({
-      errCode: 2,
       message: "Thất bại rồi",
     });
   }
@@ -198,7 +197,7 @@ let createNewDiscount = async (req, res) => {
     !description
   ) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -213,7 +212,7 @@ let createNewDiscount = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là mã khuyến mãi đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Thêm thất bại. Mã khuyến mãi đã tồn tại.",
       });
     }
@@ -252,7 +251,7 @@ let updateDiscount = async (req, res) => {
     !discount_id
   ) {
     return res.status(201).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin",
     });
   }
@@ -267,7 +266,7 @@ let updateDiscount = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là mã khuyến mãi đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Cập nhật thất bại. Mã khuyến mãi đã tồn tại.",
       });
     }
@@ -303,7 +302,6 @@ let deleteDiscount = async (req, res) => {
 
   if (!discount_id) {
     return res.status(200).json({
-      errCode: 1,
       message: "Thất bại rồi",
     });
   }

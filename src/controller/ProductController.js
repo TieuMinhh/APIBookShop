@@ -46,7 +46,7 @@ let createNewProduct = async (req, res) => {
     !id_promotion
   ) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -61,7 +61,7 @@ let createNewProduct = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là tên sản phẩm đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Thêm thất bại. Tên sản phẩm đã tồn tại.",
       });
     }
@@ -129,7 +129,7 @@ let updateProduct = async (req, res) => {
     !id_promotion
   ) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -144,7 +144,7 @@ let updateProduct = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là tên sản phẩm đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Sửa đổi không thành công. Tên sản phẩm đã tồn tại.",
       });
     }

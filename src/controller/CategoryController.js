@@ -83,6 +83,7 @@ let updateCategory = async (req, res) => {
   // Kiểm tra xem thông tin có bị bỏ trống hay không
   if (!name_category) {
     return res.status(200).json({
+      errCode: 1,
       message: "Vui lòng không bỏ trống thông tin",
     });
   }
@@ -97,6 +98,7 @@ let updateCategory = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là tên danh mục đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
+        errCode: 2,
         message: "Sửa đổi không thành công. Tên danh mục đã tồn tại.",
       });
     }
@@ -121,6 +123,7 @@ let updateCategory = async (req, res) => {
   }
 
   return res.status(200).json({
+    errCode: 0,
     message: "Chúc mừng, bạn đã cập nhật thành công danh mục.",
   });
 };
@@ -130,7 +133,7 @@ let deleteCategory = async (req, res) => {
     let { id_category } = req.query; // id trùng tên với id đường dẫn
     console.log(req.query);
     if (!id_category) {
-      return res.status(200).json({
+      return res.status(201).json({
         message: "Thất bại rồi",
       });
     }
@@ -142,7 +145,8 @@ let deleteCategory = async (req, res) => {
     );
 
     if (rows[0].productCount > 0) {
-      return res.status(201).json({
+      return res.status(200).json({
+        errCode: 1,
         message: "Không thể xoá vì đã có sản phẩm trong danh mục này.",
       });
     }
@@ -155,6 +159,7 @@ let deleteCategory = async (req, res) => {
     console.log(err);
   }
   return res.status(200).json({
+    errCode: 0,
     message: "Chúc mừng bạn đã xóa thành công",
   });
 };

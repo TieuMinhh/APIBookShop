@@ -33,7 +33,7 @@ let createNewNXB = async (req, res) => {
   // Kiểm tra trường hợp thông tin bị bỏ trống
   if (!name_company || !phone_company || !email_company || !address_company) {
     return res.status(200).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin!",
     });
   }
@@ -48,7 +48,7 @@ let createNewNXB = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là tên nhà xuất bản đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Thêm thất bại. Tên nhà xuất bản đã tồn tại.",
       });
     }
@@ -87,7 +87,7 @@ let updateNXB = async (req, res) => {
     !id_company
   ) {
     return res.status(201).json({
-      errCode: 2,
+      errCode: 1,
       message: "Không được bỏ trống thông tin",
     });
   }
@@ -102,7 +102,7 @@ let updateNXB = async (req, res) => {
     // Nếu tìm thấy bất kỳ kết quả nào, đó có nghĩa là tên nhà xuất bản đã tồn tại
     if (rows.length > 0) {
       return res.status(200).json({
-        errCode: 1,
+        errCode: 2,
         message: "Sửa đổi không thành công. Tên nhà xuất bản đã tồn tại.",
       });
     }
@@ -131,7 +131,6 @@ let deleteNXB = async (req, res) => {
 
   if (!id_company) {
     return res.status(200).json({
-      errCode: 2,
       message: "Thất bại rồi",
     });
   }
