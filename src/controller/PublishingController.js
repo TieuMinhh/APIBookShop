@@ -1,6 +1,6 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
-import auth from "../middleware/auth";
+import { messagePublishing } from "../../message";
 
 // Nhà xuất bản
 let getNXB = async (req, res) => {
@@ -34,7 +34,7 @@ let createNewNXB = async (req, res) => {
   if (!name_company || !phone_company || !email_company || !address_company) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messagePublishing.infosEmpty,
     });
   }
 
@@ -49,7 +49,7 @@ let createNewNXB = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Thêm thất bại. Tên nhà xuất bản đã tồn tại.",
+        message: messagePublishing.existNameAddPublishing,
       });
     }
 
@@ -61,13 +61,13 @@ let createNewNXB = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã thêm nhà xuất bản thành công.",
+      message: messagePublishing.successAddNewPublishing,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình thêm nhà xuất bản.",
+      message: messagePublishing.error,
     });
   }
 };
@@ -88,7 +88,7 @@ let updateNXB = async (req, res) => {
   ) {
     return res.status(201).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin",
+      message: messagePublishing.infosEmpty,
     });
   }
 
@@ -103,7 +103,7 @@ let updateNXB = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Sửa đổi không thành công. Tên nhà xuất bản đã tồn tại.",
+        message: messagePublishing.existNameUpdatePublishing,
       });
     }
 
@@ -115,13 +115,13 @@ let updateNXB = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã cập nhật thông tin nhà xuất bản thành công.",
+      message: messagePublishing.successUpdatePublishing,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình cập nhật thông tin nhà xuất bản.",
+      message: messagePublishing.error,
     });
   }
 };
@@ -131,7 +131,7 @@ let deleteNXB = async (req, res) => {
 
   if (!id_company) {
     return res.status(200).json({
-      message: "Thất bại rồi",
+      message: messagePublishing.error,
     });
   }
 
@@ -146,7 +146,7 @@ let deleteNXB = async (req, res) => {
     if (productRows.length > 0) {
       return res.status(200).json({
         errCode: 1,
-        message: "Xóa thất bại. Nhà xuất bản đã xuất bản sách.",
+        message: messagePublishing.existProductInPublishing,
       });
     }
 
@@ -158,12 +158,12 @@ let deleteNXB = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã xóa nhà xuất bản thành công.",
+      message: messagePublishing.successDeletePublishing,
     });
   } catch (err) {
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình xóa nhà xuất bản.",
+      message: messagePublishing.error,
     });
   }
 };

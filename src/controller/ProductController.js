@@ -1,6 +1,7 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
+import { messageProduct } from "../../message";
 
 //Sản phẩm
 let getProduct = async (req, res) => {
@@ -47,7 +48,7 @@ let createNewProduct = async (req, res) => {
   ) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messageProduct.infosEmpty,
     });
   }
 
@@ -62,7 +63,7 @@ let createNewProduct = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Thêm thất bại. Tên sản phẩm đã tồn tại.",
+        message: messageProduct.existNameAddProduct,
       });
     }
 
@@ -85,13 +86,13 @@ let createNewProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã thêm sản phẩm thành công.",
+      message: messageProduct.successAddNewProduct,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       errCode: 3,
-      message: "Đã xảy ra lỗi trong quá trình thêm sản phẩm.",
+      message: messageProduct.error,
     });
   }
 };
@@ -130,7 +131,7 @@ let updateProduct = async (req, res) => {
   ) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messageProduct.infosEmpty,
     });
   }
 
@@ -145,7 +146,7 @@ let updateProduct = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Sửa đổi không thành công. Tên sản phẩm đã tồn tại.",
+        message: messageProduct.existNameUpdateProduct,
       });
     }
 
@@ -187,13 +188,13 @@ let updateProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã cập nhật thành công thông tin sản phẩm.",
+      message: messageProduct.successUpdateProduct,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       errCode: 3,
-      message: "Đã xảy ra lỗi trong quá trình cập nhật sản phẩm.",
+      message: messageProduct.error,
     });
   }
 };
@@ -219,8 +220,7 @@ let deleteProduct = async (req, res) => {
     if (cartRows.length > 0 || orderRows.length > 0) {
       return res.status(200).json({
         errCode: 1,
-        message:
-          "Xóa thất bại. Sản phẩm đã được thêm vào giỏ hàng hoặc đã được đặt hàng.",
+        message: messageProduct.existProductInCart,
       });
     }
 
@@ -231,13 +231,13 @@ let deleteProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã xóa sản phẩm thành công.",
+      message: messageProduct.successDeleteProduct,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 2,
-      message: "Đã xảy ra lỗi trong quá trình xóa sản phẩm.",
+      message: messageProduct.error,
     });
   }
 };

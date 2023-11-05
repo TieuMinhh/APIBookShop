@@ -147,7 +147,7 @@ let addProduct = async (req, res) => {
 
     if (quantity < 1) {
       return res.status(400).json({
-        message: "Số lượng phải lớn hơn 0",
+        message: "Số lượng sản phẩm phải lớn hơn 0",
       });
     }
 
@@ -239,21 +239,6 @@ let deleteProductFromCart = async (req, res) => {
   }
 };
 
-let addCategory = (name, logo) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let add = await pool.execute(
-        "insert into category (name, logo) values (?,?)",
-        [name, logo]
-      );
-      //console.log('Check addCart: ', add);
-      resolve(add);
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 let DecrementProductFromCart = async (req, res) => {
   try {
     let id_product = req.params.id_product;
@@ -305,7 +290,6 @@ module.exports = {
   getCart,
   addProduct,
   deleteProductFromCart,
-  addCategory,
   DecrementProductFromCart,
   IncrementProductFromCart,
 };

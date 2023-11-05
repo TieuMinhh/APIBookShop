@@ -5,6 +5,8 @@ import UserController from "./UserController";
 import bcrypt from "bcryptjs";
 import { createJWTTest } from "../middleware/JWTAction";
 
+import { messageUser } from "../../message";
+
 let getIdAccountOfEmail = (email) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -67,7 +69,7 @@ let forgotPassword = async (req, res) => {
 
     if (!email) {
       return res.status(401).json({
-        message: "Vui lòng nhập email!",
+        message: messageUser.emptyEmail,
       });
     }
 
@@ -94,12 +96,12 @@ let forgotPassword = async (req, res) => {
       return res.status(200).json({
         errCode: 0,
         id_account: id_account,
-        message: "Đã gửi mã xác nhận đến email của bạn",
+        message: messageUser.sentEmailVerification,
       });
     } else {
       return res.status(200).json({
         errCode: 1,
-        message: "Tài khoản không tồn tại trong hệ thống",
+        message: messageUser.notExistEmail,
       });
     }
   } catch (error) {
@@ -157,7 +159,7 @@ let confirm = async (req, res) => {
     console.log("Tham so truyen vao: ", code, id_account);
     if (!code || !id_account) {
       return res.status(200).json({
-        message: "Không được bỏ trống",
+        message: messageUser.infosEmpty,
       });
     }
 
@@ -166,13 +168,9 @@ let confirm = async (req, res) => {
     if (!exist) {
       return res.status(200).json({
         errCode: 1,
-        message: "Mã xác minh đã hết hiệu lực",
+        message: messageUser.overTimeVerification,
       });
     } else {
-      // return res.status(200).json({
-      //     errCode: 0,
-      //     message: 'Thàn công rồi'
-      // })
       console.log(">>>>>>>>Check password 1 :  ", code, exist);
       let checkPassword = bcrypt.compareSync(code, exist);
       console.log(">>>>>>>>Check password:  ", checkPassword);
@@ -183,12 +181,12 @@ let confirm = async (req, res) => {
         console.log(">>>>>>>>Check password 2 :  ", accsessToken);
         return res.status(200).json({
           errCode: 0,
-          message: "Thành công! Mời ngài hãy nhập mật khẩu mới",
+          message: messageUser.successVerification,
           id_account: id_account,
         });
       } else {
         return res.status(500).json({
-          message: "Mã xác thực không chính xác, vui lòng nhập lại",
+          message: messageUser.InvalidVerification,
         });
       }
     }

@@ -1,6 +1,7 @@
 import { request } from "express";
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
+import { messageOrder } from "../../message";
 
 //Xem đơn đặt hàng
 //note ý tưởng
@@ -15,7 +16,7 @@ let pay = async (req, res) => {
     console.log("Check exist", check.exist);
     if (!check.exist) {
       return res.status(200).json({
-        message: "Chưa có sản phẩm để thanh toán",
+        message: messageOrder.nullProductInCart,
       });
     }
 
@@ -108,8 +109,16 @@ let datHangNew = async (req, res) => {
   let id_account = auth.tokenData(req).id_account;
   let arr = req.body.arr;
   let discount_id = req.body.discount_id || null; // Chỉnh sửa tên biến
-  let id_address = req.body.id_address || null;
+  let id_address = req.body.id_address;
   let check = await checkCart(id_account);
+
+  if (!id_address) {
+    return res.status(200).json({
+      errCode: 2,
+      message: messageOrder.nullDeliveryAddress,
+    });
+  }
+
   if (check) {
     try {
       let insert = await insertOrder(id_account, discount_id, id_address);
@@ -133,22 +142,24 @@ let datHangNew = async (req, res) => {
         //   let del = await deleteCart(id_account, listDetails[i].id_product);
         // }
         return res.status(200).json({
-          order: "Đặt hàng thành công!",
+          errCode: 0,
+          message: messageOrder.successPay,
         });
       } else {
-        return res.status(400).json({
-          message: "Đặt hàng thất bại!",
+        return res.status(200).json({
+          errCode: 1,
+          message: messageOrder.failPay,
         });
       }
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Đặt hàng thất bại!",
+        message: messageOrder.failPay,
       });
     }
   } else {
     return res.status(400).json({
-      message: "Giỏ hàng của bạn trống nên không thể đặt hàng!",
+      message: messageOrder.nullProductInCart,
     });
   }
 };
@@ -404,7 +415,7 @@ let confirmOrder = (req, res) => {
     );
     return res.status(200).json({
       errCode: 0,
-      message: "Đơn hàng đã được xác nhận",
+      message: messageOrder.successConfirmOrder,
     });
   } catch (e) {
     console.log(e);
@@ -443,7 +454,7 @@ let completeOrder = async (req, res) => {
       // detailOrder: details
       total,
       errCode: 0,
-      message: "Đơn hàng đã hoàn thành",
+      message: messageOrder.successCompleteOrder,
     });
   } catch (e) {
     console.log(e);
@@ -459,7 +470,7 @@ let cancelOrder = (req, res) => {
     );
     return res.status(200).json({
       errCode: 0,
-      message: "Đơn hàng đã được hủy",
+      message: messageOrder.cancelOrder,
     });
   } catch (e) {
     console.log(e);

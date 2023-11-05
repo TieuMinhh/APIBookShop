@@ -1,6 +1,7 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
+import { messageDiscount } from "../../message";
 
 //Giảm giá sách
 let getPromotionProduct = async (req, res) => {
@@ -32,7 +33,7 @@ let createNewPromotionProduct = async (req, res) => {
   if (!percentage || !start_date || !end_date) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messageDiscount.infosEmpty,
     });
   }
 
@@ -47,7 +48,7 @@ let createNewPromotionProduct = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Thêm thất bại. Giảm giá sách đã tồn tại.",
+        message: messageDiscount.existPercentageAddProductPromotion,
       });
     }
 
@@ -59,13 +60,13 @@ let createNewPromotionProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, ngài đã thêm giảm giá sách thành công.",
+      message: messageDiscount.successAddNewProductPromotion,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình thêm giảm giá sách.",
+      message: messageDiscount.error,
     });
   }
 };
@@ -79,7 +80,7 @@ let updatePromotionProduct = async (req, res) => {
   if (!percentage || !start_date || !end_date) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messageDiscount.infosEmpty,
     });
   }
 
@@ -94,8 +95,7 @@ let updatePromotionProduct = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message:
-          "Sửa đổi không thành công. Phần trăm giảm giá sách đã tồn tại.",
+        message: messageDiscount.existPercentageUpdateProductPromotion,
       });
     }
 
@@ -107,14 +107,13 @@ let updatePromotionProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message:
-        "Chúc mừng, bạn đã cập nhật thông tin khuyến mãi sản phẩm thành công.",
+      message: messageDiscount.successUpdateProductPromotion,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình cập nhật khuyến mãi sản phẩm.",
+      message: messageDiscount.error,
     });
   }
 };
@@ -124,7 +123,7 @@ let deletePromotionProduct = async (req, res) => {
 
   if (!id_promotion) {
     return res.status(200).json({
-      message: "Thất bại rồi",
+      message: messageDiscount.error,
     });
   }
 
@@ -139,7 +138,7 @@ let deletePromotionProduct = async (req, res) => {
     if (productRows.length > 0) {
       return res.status(200).json({
         errCode: 1,
-        message: "Xóa thất bại. Phần trăm giảm giá sách đã được sử dụng.",
+        message: messageDiscount.usedProductPromotion,
       });
     }
 
@@ -151,12 +150,12 @@ let deletePromotionProduct = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã xóa phần trăm giảm giá sách thành công.",
+      message: messageDiscount.successDeleteDiscount,
     });
   } catch (err) {
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình xóa phần trăm giảm giá sách.",
+      message: messageDiscount.error,
     });
   }
 };
@@ -198,7 +197,7 @@ let createNewDiscount = async (req, res) => {
   ) {
     return res.status(200).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin!",
+      message: messageDiscount.infosEmpty,
     });
   }
 
@@ -213,7 +212,7 @@ let createNewDiscount = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Thêm thất bại. Mã khuyến mãi đã tồn tại.",
+        message: messageDiscount.existCodeAddDiscount,
       });
     }
 
@@ -225,13 +224,13 @@ let createNewDiscount = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, ngài đã thêm mã khuyến mãi thành công.",
+      message: messageDiscount.successAddNewDiscount,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 3,
-      message: "Đã xảy ra lỗi trong quá trình thêm mã khuyến mãi.",
+      message: messageDiscount.error,
     });
   }
 };
@@ -252,7 +251,7 @@ let updateDiscount = async (req, res) => {
   ) {
     return res.status(201).json({
       errCode: 1,
-      message: "Không được bỏ trống thông tin",
+      message: messageDiscount.infosEmpty,
     });
   }
 
@@ -267,7 +266,7 @@ let updateDiscount = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Cập nhật thất bại. Mã khuyến mãi đã tồn tại.",
+        message: messageDiscount.existCodeUpdateDiscount,
       });
     }
 
@@ -286,13 +285,13 @@ let updateDiscount = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã cập nhật thông tin mã khuyến mãi thành công.",
+      message: messageDiscount.successUpdateDiscount,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình cập nhật mã khuyến mãi.",
+      message: messageDiscount.error,
     });
   }
 };
@@ -302,7 +301,7 @@ let deleteDiscount = async (req, res) => {
 
   if (!discount_id) {
     return res.status(200).json({
-      message: "Thất bại rồi",
+      message: messageDiscount.error,
     });
   }
 
@@ -317,7 +316,7 @@ let deleteDiscount = async (req, res) => {
     if (orderRows.length > 0) {
       return res.status(200).json({
         errCode: 1,
-        message: "Xóa thất bại. Mã giảm giá đã được sử dụng trong đơn hàng.",
+        message: messageDiscount.usedDiscount,
       });
     }
 
@@ -328,30 +327,62 @@ let deleteDiscount = async (req, res) => {
 
     return res.status(200).json({
       errCode: 0,
-      message: "Chúc mừng, bạn đã xóa mã giảm giá thành công.",
+      message: messageDiscount.successDeleteDiscount,
     });
   } catch (err) {
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình xóa mã giảm giá.",
+      message: messageDiscount.error,
     });
   }
 };
 
+const checkDiscountValidity = async (discountCode) => {
+  try {
+    const [response] = await pool.execute(
+      "SELECT * FROM discount WHERE discount_code = ?",
+      [discountCode]
+    );
+
+    if (response.length > 0) {
+      const check = response[0];
+      const today = new Date();
+      const startDay = new Date(check.start_date);
+      const endDay = new Date(check.end_date);
+
+      // Kiểm tra xem mã giảm giá còn hợp lệ hay không
+      if (startDay <= today && today <= endDay) {
+        return check; // trả về thông tin mã giảm giá nếu nó còn hợp lệ
+      } else {
+        return null; // trả về null nếu mã giảm giá không còn hợp lệ
+      }
+    } else {
+      return null; // trả về null nếu không tìm thấy mã giảm giá
+    }
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 let getDiscountByCode = async (req, res) => {
-  //thực thi lênh sql
   try {
     let code = req.query.discount_code;
     console.log(code);
     console.log("code : ", code);
-    let [response] = await pool.execute(
-      "select * from discount where discount_code=?",
-      [code]
-    );
-    console.log(response);
-    return res
-      .status(200)
-      .json({ data: response.length > 0 ? response[0] : {} });
+
+    // Kiểm tra mã giảm giá
+    const discountInfo = await checkDiscountValidity(code);
+
+    if (discountInfo) {
+      return res.status(200).json({
+        discount: discountInfo,
+      });
+    } else {
+      return res.status(201).json({
+        message: messageDiscount.invalidDiscount,
+      });
+    }
   } catch (error) {
     console.log(error);
   }

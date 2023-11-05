@@ -1,6 +1,7 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
 
+import { messageCategory } from "../../message";
 //Danh mục
 let getCategory = async (req, res) => {
   //thực thi lênh sql
@@ -30,7 +31,7 @@ let createNewCategory = async (req, res) => {
   if (!req.file || !name_category) {
     return res.status(200).json({
       errCode: 2,
-      message: "Vui lòng không bỏ trống thông tin",
+      message: messageCategory.infosEmpty,
     });
   }
 
@@ -47,7 +48,7 @@ let createNewCategory = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 1,
-        message: "Thêm thất bại. Tên danh mục đã tồn tại",
+        message: messageCategory.existNameAddCategory,
       });
     }
 
@@ -60,13 +61,13 @@ let createNewCategory = async (req, res) => {
     console.log(error);
     return res.status(500).json({
       errCode: 1,
-      message: "Đã xảy ra lỗi trong quá trình thêm mới danh mục",
+      message: messageCategory.error,
     });
   }
 
   return res.status(200).json({
     errCode: 0,
-    message: "Chúc mừng, bạn đã thêm thành công danh mục mới",
+    message: messageCategory.successAddNewCategory,
   });
 };
 
@@ -84,7 +85,7 @@ let updateCategory = async (req, res) => {
   if (!name_category) {
     return res.status(200).json({
       errCode: 1,
-      message: "Vui lòng không bỏ trống thông tin",
+      message: messageCategory.infosEmpty,
     });
   }
 
@@ -99,7 +100,7 @@ let updateCategory = async (req, res) => {
     if (rows.length > 0) {
       return res.status(200).json({
         errCode: 2,
-        message: "Sửa đổi không thành công. Tên danh mục đã tồn tại.",
+        message: messageCategory.existNameUpdateCategory,
       });
     }
 
@@ -118,13 +119,13 @@ let updateCategory = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      message: "Đã xảy ra lỗi trong quá trình cập nhật danh mục.",
+      message: messageCategory.error,
     });
   }
 
   return res.status(200).json({
     errCode: 0,
-    message: "Chúc mừng, bạn đã cập nhật thành công danh mục.",
+    message: messageCategory.successUpdateCategory,
   });
 };
 
@@ -134,7 +135,7 @@ let deleteCategory = async (req, res) => {
     console.log(req.query);
     if (!id_category) {
       return res.status(201).json({
-        message: "Thất bại rồi",
+        message: messageCategory.error,
       });
     }
 
@@ -147,7 +148,7 @@ let deleteCategory = async (req, res) => {
     if (rows[0].productCount > 0) {
       return res.status(200).json({
         errCode: 1,
-        message: "Không thể xoá vì đã có sản phẩm trong danh mục này.",
+        message: messageCategory.existProductInCategory,
       });
     }
 
@@ -160,7 +161,7 @@ let deleteCategory = async (req, res) => {
   }
   return res.status(200).json({
     errCode: 0,
-    message: "Chúc mừng bạn đã xóa thành công",
+    message: messageCategory.successDeleteCategory,
   });
 };
 

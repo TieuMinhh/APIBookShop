@@ -1,6 +1,7 @@
 import pool from "../configs/connectDatabse";
 import bcrypt from "bcryptjs";
 import { createJWTTest } from "../middleware/JWTAction";
+import { messageUser } from "../../message";
 
 let handleUserLogin = (email, password) => {
   return new Promise(async (resolve, reject) => {
@@ -19,8 +20,7 @@ let handleUserLogin = (email, password) => {
         // Kiểm tra trạng thái tài khoản
         if (rows[0].status === 1) {
           userData.errCode = 3;
-          userData.message =
-            "Tài khoản đã bị khóa. Vui lòng donate cho quản trị viên để được mở khoá";
+          userData.message = messageUser.blockEmail;
           return resolve(userData);
         }
 
@@ -30,17 +30,17 @@ let handleUserLogin = (email, password) => {
         if (check) {
           let data = { ...rows[0] }; // lấy object
           userData.errCode = 0;
-          userData.message = "Đăng nhập thành công";
+          userData.message = messageUser.successLogin;
           userData.role_id = data.role_id;
           delete data["password"]; // bỏ cái password nhạy cảm
           userData.user = createJWTTest(data);
         } else {
           userData.errCode = 2;
-          userData.message = "Sai mật khẩu. Vui lòng kiểm tra lại";
+          userData.message = messageUser.wrongPassword;
         }
       } else {
         userData.errCode = 1;
-        userData.message = "Tài khoản không tồn tại";
+        userData.message = messageUser.notExistEmail;
       }
       resolve(userData);
     } catch (error) {
@@ -90,7 +90,7 @@ let handleAdminLogin = (email, password) => {
           let data = { ...rows[0] }; //lấy object
           //let data = rows[0]
           userData.errCode = 0;
-          userData.message = "Đăng nhập thành công";
+          userData.message = messageUser.successLogin;
           userData.role_id = data.role_id;
 
           // delete user.password;
@@ -100,11 +100,11 @@ let handleAdminLogin = (email, password) => {
           // console.log(userData.user);
         } else {
           userData.errCode = 2;
-          userData.message = "Sai mật khẩu.Vui lòng kiểm tra lại";
+          userData.message = messageUser.wrongPassword;
         }
       } else {
         userData.errCode = 1;
-        userData.message = "Tên đăng nhập không tồn tại";
+        userData.message = messageUser.notExistEmail;
       }
       resolve(userData);
     } catch (error) {

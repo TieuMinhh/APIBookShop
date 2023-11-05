@@ -4,6 +4,8 @@ import userService from "../services/userService";
 import auth from "../middleware/auth";
 const salt = bcrypt.genSaltSync(10);
 
+import { messageUser } from "../../message";
+
 let hashUserPassword = (password) => {
   return new Promise((resolve, reject) => {
     try {
@@ -21,10 +23,10 @@ let createNewUser = async (req, res) => {
   let { email, password, phone } = req.body;
   // let avatar = req.file.filename;
   //bắt lỗi trống thông tin
-  if (!email && !password && !phone) {
+  if (!email || !password || !phone) {
     return res.status(400).json({
       errCode: 1,
-      message: "Tài khoản hoặc mật khẩu bị bỏ trống",
+      message: messageUser.infosEmpty,
     });
   }
 
@@ -42,13 +44,13 @@ let createNewUser = async (req, res) => {
     // console.log(hashPasswordFromBcrypt);
     return res.status(200).json({
       errCode: 0,
-      message: "Đăng ký thành công",
+      message: messageUser.successRegister,
       password: hashPasswordFromBcrypt,
     });
   } else {
     return res.status(400).json({
       errCode: 2,
-      message: "Email đã được đăng ký",
+      message: messageUser.duplicateEmail,
     });
   }
 };
@@ -80,13 +82,13 @@ let changePassword = async (req, res) => {
     console.log(check);
     if (!check) {
       return res.status(202).json({
-        message: "Mật khẩu cũ không hợp lệ!",
+        message: messageUser.oldPasswordInvalid,
       });
     }
 
     if (newPassword.trim() != confirmPassword.trim()) {
       return res.status(201).json({
-        message: "Mật khẩu không khớp!",
+        message: messageUser.InvalidConfirmPassword,
       });
     }
     //if(oldPassword == )
@@ -99,11 +101,11 @@ let changePassword = async (req, res) => {
         id_account,
       ]);
       return res.status(200).json({
-        message: "Đổi mật khẩu thành công!",
+        message: messageUser.successChangePassword,
       });
     } else {
       return res.status(500).json({
-        message: "Không được bỏ trống mật khẩu!",
+        message: messageUser.emptyPassword,
       });
     }
   } catch (error) {
@@ -134,7 +136,7 @@ let updateInfo = async (req, res) => {
     // Kiểm tra xem thông tin có bị bỏ trống hay không
     if (!name || !phone || !address) {
       return res.status(400).json({
-        message: "Không được bỏ trống thông tin",
+        message: messageUser.infosEmpty,
       });
     }
 
@@ -144,12 +146,12 @@ let updateInfo = async (req, res) => {
       [name, phone, address, id_account]
     );
     return res.status(200).json({
-      message: "Cập nhật thông tin thành công!",
+      message: messageUser.successChangeInfo,
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
-      message: "Đã xảy ra lỗi trong quá trình cập nhật thông tin.",
+      message: messageUser.error,
     });
   }
 };
@@ -188,7 +190,7 @@ let getInfo = async (req, res) => {
       });
     } else {
       return res.status(400).json({
-        message: "không thành công",
+        message: messageUser.error,
       });
     }
   } catch (err) {
@@ -207,7 +209,7 @@ let changePasswordNew = async (req, res) => {
 
     if (newPassword.trim() != newPassword2.trim()) {
       return res.status(200).json({
-        message: "Mật khẩu không khớp!",
+        message: messageUser.InvalidConfirmPassword,
       });
     }
     //if(oldPassword == )
@@ -220,11 +222,11 @@ let changePasswordNew = async (req, res) => {
         id_account,
       ]);
       return res.status(200).json({
-        message: "Đổi mật khẩu thành công!",
+        message: messageUser.successResetPassword,
       });
     } else {
       return res.status(500).json({
-        message: "Vui lòng không được bỏ trống mật khẩu!",
+        message: messageUser.emptyPassword,
       });
     }
   } catch (error) {

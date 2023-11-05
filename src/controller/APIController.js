@@ -4,6 +4,8 @@ import userService from "../services/userService";
 import auth from "../middleware/auth";
 import mail from "../services/mail";
 
+import { messageUser } from "../../message";
+
 //API login
 let handleLogin = async (req, res) => {
   let { email, password } = req.body;
@@ -11,7 +13,7 @@ let handleLogin = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       errCode: 1,
-      message: "Ngài đã nhập thiếu email hoặc password",
+      message: messageUser.infoEmpty,
     });
   }
   console.log("Thông tin: ", req.body);
@@ -36,7 +38,7 @@ let handleAdminLogin = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       errCode: 1,
-      message: "Ngài nhập thiếu email hoặc password",
+      message: messageUser.infoEmpty,
     });
   }
   console.log("Minh: ", req.body);
@@ -135,7 +137,7 @@ let blockAccount = async (req, res) => {
     if (rows.length === 0) {
       // Xử lý trường hợp không có hàng được trả về
       return res.status(404).json({
-        message: "Không tìm thấy tài khoản",
+        message: messageUser.notFoundUser,
       });
     }
 
@@ -151,13 +153,13 @@ let blockAccount = async (req, res) => {
     mail.sendNotificationBlock(userEmail, reason); // Sử dụng email lấy được từ cơ sở dữ liệu
 
     return res.status(200).json({
-      message: "Khoá tài khoản thành công và đã gửi thông báo",
+      message: messageUser.successBlockUser,
     });
   } catch (err) {
     console.log("email là :");
     console.error("Lỗi khi khoá tài khoản:", err);
     return res.status(500).json({
-      message: "Đã xảy ra lỗi khi thực hiện khoá tài khoản và gửi thông báo",
+      message: messageUser.error,
     });
   }
 };
@@ -176,7 +178,7 @@ let unblockAccount = async (req, res) => {
     if (rows.length === 0) {
       // Xử lý trường hợp không có hàng được trả về
       return res.status(404).json({
-        message: "Không tìm thấy tài khoản",
+        message: messageUser.notFoundUser,
       });
     }
     const userEmail = rows[0].email;
@@ -191,12 +193,12 @@ let unblockAccount = async (req, res) => {
     mail.sendNotificationUnblock(userEmail, reason); // Sử dụng email lấy được từ cơ sở dữ liệu
 
     return res.status(200).json({
-      message: "Mở khoá tài khoản thành công và đã gửi thông báo",
+      message: messageUser.successUnBlockUser,
     });
   } catch (err) {
-    console.error("Lỗi khi khoá tài khoản:", err);
+    console.error(messageUser.error, err);
     return res.status(500).json({
-      message: "Đã xảy ra lỗi khi thực hiện khoá tài khoản và gửi thông báo",
+      message: messageUser.error,
     });
   }
 };

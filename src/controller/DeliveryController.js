@@ -1,6 +1,7 @@
 import { verify } from "jsonwebtoken";
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
+import { messageDeliveryAddress } from "../../message";
 
 const getAddressDelivery = async (req, res) => {
   try {
@@ -26,6 +27,13 @@ const createAddressDelivery = async (req, res) => {
     const id_account = auth.tokenData(req).id_account;
     const { name_address, name_receiver, phone_receiver } = req.body;
 
+    // Kiểm tra xem thông tin có bị bỏ trống hay không
+    if (!name_address || !name_receiver || !phone_receiver) {
+      return res.status(200).json({
+        errCode: 1,
+        message: messageDeliveryAddress.infosEmpty,
+      });
+    }
     // Thực hiện việc tạo địa chỉ giao hàng trong cơ sở dữ liệu
     const [result] = await pool.execute(
       "INSERT INTO delivery_address (id_account, name_address,name_receiver,phone_receiver) VALUES (?,?,?,?)",
@@ -33,11 +41,13 @@ const createAddressDelivery = async (req, res) => {
     );
 
     if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được tạo thành công.",
+      return res.status(200).json({
+        errCode: 0,
+        message: messageDeliveryAddress.successAddNewAddressDelivery,
       });
     } else {
-      return res.json({
+      return res.status(200).json({
+        errCode: 2,
         message: "Tạo địa chỉ giao hàng thất bại.",
       });
     }
@@ -60,13 +70,14 @@ const updateAddressDelivery = async (req, res) => {
     );
 
     if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được cập nhật thành công.",
+      return res.status(200).json({
+        errCode: 0,
+        message: messageDeliveryAddress.successUpdateAddressDelivery,
       });
     } else {
-      return res.json({
-        message:
-          "Không tìm thấy địa chỉ giao hàng hoặc cập nhật không thành công.",
+      return res.status(200).json({
+        errCode: 1,
+        message: messageDeliveryAddress.error,
       });
     }
   } catch (err) {
@@ -80,19 +91,34 @@ const deleteAddressDelivery = async (req, res) => {
     const id_account = auth.tokenData(req).id_account;
     const id_address = req.params.id_address; // Lấy id_address cần xóa từ tham số URL
 
-    // Thực hiện truy vấn SQL để xóa địa chỉ giao hàng
+    // Kiểm tra xem địa chỉ giao hàng này đã được sử dụng trong bảng order chưa
+    const [orderCheck] = await pool.execute(
+      "SELECT id_address FROM orders WHERE id_address = ?",
+      [id_address]
+    );
+
+    // Nếu địa chỉ giao hàng đã được sử dụng trong bảng order, trả về thông báo lỗi
+    if (orderCheck.length > 0) {
+      return res.status(200).json({
+        errCode: 1,
+        message: messageDeliveryAddress.usedAddressDelivery,
+      });
+    }
+
+    // Thực hiện truy vấn SQL để xóa địa chỉ giao hàng nếu không có đơn hàng nào sử dụng
     const [result] = await pool.execute(
       "DELETE FROM delivery_address WHERE id_account = ? AND id_address = ?",
       [id_account, id_address]
     );
 
     if (result.affectedRows > 0) {
-      return res.json({
-        message: "Địa chỉ giao hàng đã được xóa thành công.",
+      return res.status(200).json({
+        errCode: 0,
+        message: messageDeliveryAddress.successDeleteAddressDelivery,
       });
     } else {
-      return res.json({
-        message: "Không tìm thấy địa chỉ giao hàng hoặc xóa không thành công.",
+      return res.status(400).json({
+        message: messageDeliveryAddress.error,
       });
     }
   } catch (err) {
