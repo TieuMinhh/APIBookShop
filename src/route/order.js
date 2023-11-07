@@ -51,6 +51,13 @@ const orderRoute = (app) => {
     OrderController.getRevenueByDateToDate
   );
 
+  //Tính số đơn hàng đã thành công
+  router.get(
+    "/user/successful-orders",
+    auth.authenUser,
+    OrderController.getQuantitySuccessOrders
+  );
+
   return app.use("/api/", router);
 };
 

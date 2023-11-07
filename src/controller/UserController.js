@@ -81,13 +81,15 @@ let changePassword = async (req, res) => {
     let check = bcrypt.compareSync(oldPassword, currentPassword);
     console.log(check);
     if (!check) {
-      return res.status(202).json({
+      return res.status(200).json({
+        errCode: 1,
         message: messageUser.oldPasswordInvalid,
       });
     }
 
     if (newPassword.trim() != confirmPassword.trim()) {
-      return res.status(201).json({
+      return res.status(200).json({
+        errCode: 2,
         message: messageUser.InvalidConfirmPassword,
       });
     }
@@ -101,6 +103,7 @@ let changePassword = async (req, res) => {
         id_account,
       ]);
       return res.status(200).json({
+        errCode: 0,
         message: messageUser.successChangePassword,
       });
     } else {
@@ -135,7 +138,8 @@ let updateInfo = async (req, res) => {
 
     // Kiểm tra xem thông tin có bị bỏ trống hay không
     if (!name || !phone || !address) {
-      return res.status(400).json({
+      return res.status(200).json({
+        errCode: 1,
         message: messageUser.infosEmpty,
       });
     }
@@ -146,6 +150,7 @@ let updateInfo = async (req, res) => {
       [name, phone, address, id_account]
     );
     return res.status(200).json({
+      errCode: 0,
       message: messageUser.successChangeInfo,
     });
   } catch (err) {

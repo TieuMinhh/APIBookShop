@@ -663,7 +663,7 @@ let orderHistory = async (req, res) => {
 
 let orderAccount = async (req, res) => {
   try {
-    let id_account = req.params.id_account;
+    let id_account = auth.tokenData(req).id_account;
     console.log(id_account);
     let [response] = await pool.execute(
       "SELECT o.id_order,o.order_time,o.id_account,o.status,o.discount_id,a.name,a.address FROM orders o,account a WHERE a.id_account=o.id_account and o.id_account=? ORDER by o.id_order DESC",
@@ -674,6 +674,33 @@ let orderAccount = async (req, res) => {
     });
   } catch (e) {
     console.log(e);
+  }
+};
+
+const getQuantitySuccessOrders = async (req, res) => {
+  try {
+    // const id_account = req.params.id_account;
+    const [response] = await pool.execute(
+      `SELECT
+      a.id_account,
+      a.name AS account_name,
+      SUM(CASE WHEN o.status = 0 THEN 1 ELSE 0 END) AS successful_orders
+    FROM
+      account a
+    LEFT JOIN
+      orders o ON a.id_account = o.id_account
+    WHERE a.id_account = ?
+    GROUP BY a.id_account, a.name;
+      `,
+      [auth.tokenData(req).id_account]
+    );
+
+    return res.status(200).json({
+      successfulOrders: response,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -692,4 +719,5 @@ module.exports = {
   datHangNew,
   orderHistory,
   orderAccount,
+  getQuantitySuccessOrders,
 };
