@@ -117,11 +117,11 @@ const messageDiscount = {
 
   // Add Discount
   existCodeAddDiscount: "Thêm thất bại. Mã giảm giá đã tồn tại",
-  successAddNewDiscount: "Thêm mới nhà xuất bản thành công",
+  successAddNewDiscount: "Thêm mới mã giảm giá thành công",
 
   //Updat Discount
   existCodeUpdateDiscount: "Cập nhật thất bại. Mã giảm giá đã tồn tại",
-  successUpdateDiscount: "Cập nhật nhà xuất bản thành công",
+  successUpdateDiscount: "Cập nhật mã giảm giá thành công",
 
   //Remove Discount
   usedDiscount: "Không thể xoá vì mã giảm giá này đã được sử dụng",

@@ -257,110 +257,108 @@ let selectIdOrder = (id_account) => {
   });
 };
 
-let detail = (id_order) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const [detail] = await pool.execute(
-        `
-        SELECT
-        temp_result.id_order,
-        temp_result.order_time,
-        temp_result.id_account,
-        temp_result.status,
-        temp_result.discount_id,
-        CONCAT('[', GROUP_CONCAT(
-            JSON_OBJECT(
-                'id_product', temp_result.id_product,
-                'name_product', temp_result.name_product,
-                'quantity', temp_result.quantity,
-                'detail', temp_result.detail,
-                'images', temp_result.images,
-                'original_price', temp_result.price,
-                'price_reducing',temp_result.price_reducing
-            )
-        ), ']') AS products,
-        a.name AS account_name,
-        a.address AS account_address,
-        a.phone AS account_phone,
-        temp_result.percentage AS discount_percentage,
-        da.id_address AS id_delivery_address,
-        da.name_address AS name_address,
+const detail = async (id_order) => {
+  try {
+    const [details] = await pool.execute(
+      `
+      SELECT
+    temp_result.id_order,
+    temp_result.order_time,
+    temp_result.id_account,
+    temp_result.status,
+    temp_result.discount_id,
+    CONCAT('[', GROUP_CONCAT(
+        JSON_OBJECT(
+            'id_product', temp_result.id_product,
+            'name_product', temp_result.name_product,
+            'quantity', temp_result.quantity,
+            'detail', temp_result.detail,
+            'images', temp_result.images,
+            'original_price', temp_result.price,
+            'price_reducing',temp_result.price_reducing
+        )
+    ), ']') AS products,
+    a.name AS account_name,
+    a.address AS account_address,
+    a.phone AS account_phone,
+    temp_result.percentage AS discount_percentage,
+    da.id_address AS id_delivery_address,
+    da.name_address AS name_address,
+    da.name_receiver,
+    da.phone_receiver
+FROM (
+    SELECT DISTINCT
+        a.id_order,
+        a.id_product,
+        a.quantity,
+        b.order_time,
+        b.id_account,
+        b.status,
+        b.discount_id,
+        c.name_product,
+        c.detail,
+        c.images,
+        c.price,
+        CAST((c.price - (c.price * pc.percentage / 100)) AS SIGNED) as price_reducing,
+        d.discount_code,
+        d.percentage,
+        da.id_address,
+        da.name_address,
         da.name_receiver,
         da.phone_receiver
-    FROM (
-        SELECT DISTINCT
-            a.id_order,
-            a.id_product,
-            a.quantity,
-            b.order_time,
-            b.id_account,
-            b.status,
-            b.discount_id,
-            c.name_product,
-            c.detail,
-            c.images,
-            c.price,
-            CAST((c.price - (c.price * pc.percentage / 100)) AS SIGNED) as price_reducing,
-            d.discount_code,
-            d.percentage,
-            da.id_address,
-            da.name_address,
-            da.name_receiver,
-            da.phone_receiver
-        FROM
-            order_detail a
-        JOIN
-            orders b ON a.id_order = b.id_order
-        JOIN
-            product c ON a.id_product = c.id_product
-        LEFT JOIN
-            discount d ON b.discount_id = d.discount_id
-        LEFT JOIN
-            product_promotion pc ON pc.id_promotion = c.id_promotion
-        LEFT JOIN
-            delivery_address da ON da.id_address = b.id_address
-        ORDER BY
-            b.order_time DESC
-        ) AS temp_result
+    FROM
+        order_detail a
+    JOIN
+        orders b ON a.id_order = b.id_order
+    JOIN
+        product c ON a.id_product = c.id_product
     LEFT JOIN
-        account a ON temp_result.id_account = a.id_account
+        discount d ON b.discount_id = d.discount_id
     LEFT JOIN
-        delivery_address da ON temp_result.id_account = da.id_account
+        product_promotion pc ON pc.id_promotion = c.id_promotion
+    LEFT JOIN
+        delivery_address da ON da.id_address = b.id_address
     WHERE
-        temp_result.id_order = ?;
-        `,
-        [id_order]
-      );
+        a.id_order = ?
+    ORDER BY
+        b.order_time DESC
+) AS temp_result
+LEFT JOIN
+    account a ON temp_result.id_account = a.id_account
+LEFT JOIN
+    delivery_address da ON temp_result.id_account = da.id_account
+GROUP BY temp_result.id_order, temp_result.order_time, temp_result.id_account, temp_result.status, temp_result.discount_id, a.name, a.address, a.phone, temp_result.percentage, da.id_address, da.name_address, da.name_receiver, da.phone_receiver;
 
-      if (detail.length === 0) {
-        resolve("Chi tiết đơn hàng không tồn tại");
-      } else {
-        // Biến đổi dữ liệu sau khi truy vấn
-        const listOrder = detail.map((row) => ({
-          id_order: row.id_order,
-          order_time: row.order_time,
-          id_account: row.id_account,
-          name: row.account_name,
-          address: row.account_address,
-          phone: row.account_phone,
-          status: row.status,
-          discount_id: row.discount_id,
-          discount_percentage: row.discount_percentage,
-          id_address: row.id_address,
-          name_address: row.name_address,
-          name_receiver: row.name_receiver,
-          phone_receiver: row.phone_receiver,
-          products: JSON.parse(row.products),
-        }));
+      `,
+      [id_order]
+    );
 
-        console.log(detail[0]);
-        resolve(listOrder);
-      }
-    } catch (err) {
-      console.error(err);
-      reject(err);
+    if (details.length === 0) {
+      return "Chi tiết đơn hàng không tồn tại";
+    } else {
+      const listOrder = details.map((row) => ({
+        id_order: row.id_order,
+        order_time: row.order_time,
+        id_account: row.id_account,
+        name: row.account_name,
+        address: row.account_address,
+        phone: row.account_phone,
+        status: row.status,
+        discount_id: row.discount_id,
+        discount_percentage: row.discount_percentage,
+        id_address: row.id_address,
+        name_address: row.name_address,
+        name_receiver: row.name_receiver,
+        phone_receiver: row.phone_receiver,
+        products: JSON.parse(row.products),
+      }));
+
+      return listOrder;
     }
-  });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
 let getDetailOrder = async (req, res) => {
@@ -425,17 +423,14 @@ let confirmOrder = (req, res) => {
 
 let completeOrder = async (req, res) => {
   try {
-    //let id_account = auth.tokenData(req).id_account
     let { id_order } = req.params;
-    //let details = await detail(id_order)
     let details = await detail(id_order);
     let total = 0;
     let shipFee = 20000;
 
     if (Array.isArray(details)) {
       details.forEach((order) => {
-        let percentage = order.discount_percentage || 0; // Giả sử discount_percentage là thuộc tính được trả về từ câu truy vấn
-        console.log("giảm giá:", percentage);
+        let percentage = order.discount_percentage || 0;
         order.products.forEach((product) => {
           total +=
             product.quantity * product.price_reducing -
@@ -443,22 +438,28 @@ let completeOrder = async (req, res) => {
         });
       });
     }
-    let updatedoanhthu = await pool.execute(
-      "insert into revenue(id_order,total) values(?,?)",
-      [id_order, total + shipFee]
-    );
-    let update = pool.execute(
-      "UPDATE orders SET status = 0 WHERE id_order = ?",
-      [id_order]
-    );
+
+    total += shipFee; // Tính phí ship
+
+    await pool.execute("INSERT INTO revenue(id_order,total) VALUES(?,?)", [
+      id_order,
+      total,
+    ]);
+    await pool.execute("UPDATE orders SET status = 0 WHERE id_order = ?", [
+      id_order,
+    ]);
+
     return res.status(200).json({
-      // detailOrder: details
       total,
       errCode: 0,
       message: messageOrder.successCompleteOrder,
     });
   } catch (e) {
     console.log(e);
+    return res.status(500).json({
+      errCode: 1,
+      message: messageOrder.error,
+    });
   }
 };
 
