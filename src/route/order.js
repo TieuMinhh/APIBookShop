@@ -58,6 +58,13 @@ const orderRoute = (app) => {
     OrderController.getQuantitySuccessOrders
   );
 
+  //Tính tổng tiền đã trả khi đặt hàng thành công
+  router.get(
+    "/user/total-orders-pay/:id_order",
+    auth.authenUser,
+    OrderController.getDetailOrderAndTotal
+  );
+
   return app.use("/api/", router);
 };
 

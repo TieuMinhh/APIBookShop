@@ -41,6 +41,9 @@ const messageUser = {
   //UnBlock User
   successUnBlockUser:
     "Mở Khoá tài khoản thành công và đã gửi thông báo đến email đăng ký tài khoản",
+
+  emptyAvatar: "Vui lòng chọn ảnh đại diện",
+  successUpdateAvatar: "Cập nhật ảnh đại diện thành công",
 };
 
 const messageCategory = {

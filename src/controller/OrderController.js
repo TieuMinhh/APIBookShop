@@ -706,6 +706,77 @@ const getQuantitySuccessOrders = async (req, res) => {
   }
 };
 
+const getTotalOrderPay = async (req, res) => {
+  try {
+    const idAccount = auth.tokenData(req).id_account;
+    const [response] = await pool.execute(
+      `SELECT 
+      orders.id_order,
+      SUM(
+        (od.quantity * p.price) - 
+        (od.quantity * p.price * 
+          (
+            IFNULL((pp.percentage + IFNULL(d.percentage, 0)), 0)
+          ) / 100
+        ) + 20000
+      ) AS total_price
+    FROM 
+      order_detail od
+    JOIN 
+      orders ON od.id_order = orders.id_order
+    JOIN 
+      product p ON od.id_product = p.id_product
+    LEFT JOIN 
+      product_promotion pp ON p.id_promotion = pp.id_promotion
+    LEFT JOIN 
+      discount d ON orders.discount_id = d.discount_id
+    WHERE 
+      orders.status = 0
+    GROUP BY 
+      orders.id_order;
+      `,
+      [idAccount]
+    );
+
+    return res.status(200).json({
+      totalOrdersPay: response,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+let getDetailOrderAndTotal = async (req, res) => {
+  const { id_order } = req.params;
+  try {
+    const orderDetails = await getDetailOrder(id_order);
+    const totalOrdersPay = await getTotalOrderPay();
+
+    if (Array.isArray(orderDetails.details)) {
+      return res.status(200).json({
+        listOrderDetail: orderDetails.details,
+        total: orderDetails.total,
+        totalOrdersPay,
+      });
+    } else {
+      return res
+        .status(500)
+        .json({
+          message:
+            "Đơn hàng không tồn tại hoặc có lỗi xảy ra khi lấy chi tiết đơn hàng",
+        });
+    }
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({
+        message: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng và tính tổng",
+      });
+  }
+};
+
 module.exports = {
   pay,
   getOrder,
@@ -722,4 +793,5 @@ module.exports = {
   orderHistory,
   orderAccount,
   getQuantitySuccessOrders,
+  getDetailOrderAndTotal,
 };

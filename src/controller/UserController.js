@@ -116,18 +116,39 @@ let changePassword = async (req, res) => {
   }
 };
 
-let handleUpdate = (name, phone, address, avatar, id_account) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let update = await pool.execute(
-        "update account set name=?,phone=?,address=?,avatar=? where id_account=?",
-        [name, phone, address, avatar, id_account]
-      );
-      resolve(update);
-    } catch (err) {
-      reject(err);
+const updateAvatar = async (req, res) => {
+  try {
+    let idAccount = auth.tokenData(req).id_account;
+
+    // Lấy avatar từ request
+    let avatar = req.file && req.file.filename;
+
+    // Nếu không có avatar, trả về lỗi
+    if (!avatar) {
+      return res.status(200).json({
+        errCode: 1,
+        message: messageUser.emptyAvatar,
+      });
     }
-  });
+
+    // Cập nhật avatar trong database
+    const update = await pool.execute(
+      "UPDATE account SET avatar=? WHERE id_account=?",
+      [avatar, idAccount]
+    );
+
+    // Trả về kết quả thành công
+    return res.status(200).json({
+      errCode: 0,
+      message: messageUser.successUpdateAvatar,
+    });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    return res.status(500).json({
+      errCode: 2,
+      message: messageUser.error,
+    });
+  }
 };
 
 let updateInfo = async (req, res) => {
@@ -247,4 +268,5 @@ module.exports = {
   listAccount,
   getInfo,
   changePasswordNew,
+  updateAvatar,
 };
