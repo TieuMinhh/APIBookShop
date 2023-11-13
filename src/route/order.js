@@ -47,8 +47,37 @@ const orderRoute = (app) => {
 
   //Doanh số theo 1 khoảng thời gian nhất định
   router.get(
-    "/admin/revenue-date-to-date",
+    "/admin/revenue-date-to-date/:fromDate/:toDate",
+    auth.authenAdmin,
     OrderController.getRevenueByDateToDate
+  );
+
+  //Số đơn hành theo trạng thái theo 1 khoảng thời gian nhất định
+  router.get(
+    "/admin/total-orders-by-status-date-to-date/:status/:fromDate/:toDate",
+    auth.authenAdmin,
+    OrderController.getSuccessfulOrdersByDateToDate
+  );
+
+  //Tổng số sản phẩm đã bán
+  router.get(
+    "/admin/total-sold-product",
+    auth.authenAdmin,
+    OrderController.getTotalSoldProducts
+  );
+
+  //Tổng số đơn hàng mới hôm nay
+  router.get(
+    "/admin/total-new-orders-today",
+    auth.authenAdmin,
+    OrderController.getTotalNewOrdersToday
+  );
+
+  //Tổng số khách hàng mới hôm nay
+  router.get(
+    "/admin/new-customer-today",
+    auth.authenAdmin,
+    OrderController.getNewCustomerToday
   );
 
   //Tính số đơn hàng đã thành công

@@ -532,7 +532,8 @@ let getRevenueByMonths = async (req, res) => {
 };
 
 let getRevenueByDateToDate = async (req, res) => {
-  let { fromDate, toDate } = req.body; // Đầu vào: fromDate và toDate là ngày bạn muốn tính doanh thu
+  let fromDate = req.params?.fromDate; // Đầu vào: fromDate và toDate là ngày bạn muốn tính doanh thu
+  let toDate = req.params?.toDate; // Đầu vào: fromDate và toDate là ngày bạn muốn tính doanh thu
 
   try {
     let [revenue] = await pool.execute(
@@ -544,12 +545,36 @@ let getRevenueByDateToDate = async (req, res) => {
     );
 
     return res.status(200).json({
-      revenue: revenue[0].total_revenue || 0,
+      totalRevenue: revenue[0].total_revenue || 0,
     });
   } catch (error) {
     console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
     return res.status(500).json({
       message: "Đã xảy ra lỗi khi truy vấn cơ sở dữ liệu",
+    });
+  }
+};
+
+const getSuccessfulOrdersByDateToDate = async (req, res) => {
+  const fromDate = req.params.fromDate;
+  const toDate = req.params.toDate;
+  const status = req.params.status;
+  try {
+    const [result] = await pool.execute(
+      `SELECT COUNT(*) AS total_orders_by_status
+      FROM orders
+      WHERE orders.status = ? 
+      AND DATE(orders.order_time) BETWEEN ? AND ?`,
+      [status, fromDate, toDate]
+    );
+
+    return res.status(200).json({
+      ordersCount: result[0].total_orders_by_status || 0,
+    });
+  } catch (error) {
+    console.error(messageOrder.error);
+    return res.status(500).json({
+      message: messageOrder.error,
     });
   }
 };
@@ -760,20 +785,91 @@ let getDetailOrderAndTotal = async (req, res) => {
         totalOrdersPay,
       });
     } else {
-      return res
-        .status(500)
-        .json({
-          message:
-            "Đơn hàng không tồn tại hoặc có lỗi xảy ra khi lấy chi tiết đơn hàng",
-        });
+      return res.status(500).json({
+        message:
+          "Đơn hàng không tồn tại hoặc có lỗi xảy ra khi lấy chi tiết đơn hàng",
+      });
     }
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({
-        message: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng và tính tổng",
-      });
+    return res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng và tính tổng",
+    });
+  }
+};
+
+const TotalSoldProducts = async () => {
+  try {
+    const [results] = await pool.execute(`
+      SELECT SUM(od.quantity) AS total_sold
+      FROM orders o
+      JOIN order_detail od ON o.id_order = od.id_order
+      WHERE o.status = 0;
+    `);
+
+    const totalSoldProduct = results[0].total_sold || 0;
+    return totalSoldProduct;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getTotalSoldProducts = async (req, res) => {
+  try {
+    const totalSold = await TotalSoldProducts();
+    res.status(200).json({ totalSoldProducts: totalSold });
+  } catch (error) {
+    res.status(500).json({ error: "Đã xảy ra lỗi khi lấy dữ liệu" });
+  }
+};
+
+const totalNewOrdersToday = async () => {
+  try {
+    const [results] = await pool.execute(`
+      SELECT COUNT(*) AS completedOrdersCount
+      FROM orders
+      WHERE DATE(order_time) = CURDATE() AND status = 1;
+    `);
+
+    const completedOrdersCount = results[0].completedOrdersCount || 0;
+    return completedOrdersCount;
+  } catch (error) {
+    console.error(messageOrder.error);
+    throw error;
+  }
+};
+
+const getTotalNewOrdersToday = async (req, res) => {
+  try {
+    const totalTodayOrders = await totalNewOrdersToday();
+    res.status(200).json({ totalTodayOrders: totalTodayOrders });
+  } catch (error) {
+    res.status(500).json({ error: messageOrder.error });
+  }
+};
+
+const newCustomersToday = async () => {
+  try {
+    const [results] = await pool.execute(`
+      SELECT COUNT(*) AS newCustomersToday
+      FROM account
+      WHERE DATE(created_time) = CURDATE();
+    `);
+
+    const newCustomersCount = results[0].newCustomersToday || 0;
+    return newCustomersCount;
+  } catch (error) {
+    console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
+    throw error;
+  }
+};
+
+const getNewCustomerToday = async (req, res) => {
+  try {
+    const newCustomers = await newCustomersToday();
+    res.status(200).json({ newCustomersToday: newCustomers });
+  } catch (error) {
+    res.status(500).json({ error: messageOrder.error });
   }
 };
 
@@ -794,4 +890,8 @@ module.exports = {
   orderAccount,
   getQuantitySuccessOrders,
   getDetailOrderAndTotal,
+  getSuccessfulOrdersByDateToDate,
+  getTotalSoldProducts,
+  getTotalNewOrdersToday,
+  getNewCustomerToday,
 };

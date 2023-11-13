@@ -1,6 +1,8 @@
 import pool from "../configs/connectDatabse";
 import auth from "../middleware/auth";
 
+import { messageCart } from "../../message";
+
 //Chức năng thanh toán
 let checkCart = (id_account) => {
   return new Promise(async (resolve, reject) => {
@@ -243,20 +245,28 @@ let DecrementProductFromCart = async (req, res) => {
   try {
     let id_product = req.params.id_product;
     let id_account = auth.tokenData(req).id_account;
-    console.log(req.body);
     let quantity = Number(req.body.quantity);
-    // let quantity = req.body.data.quantity;
-    // let size = req.body.data.size;
-    console.log(id_product, id_account, quantity);
-    if (quantity > 0) {
-      let giam = await pool.execute(
+    if (quantity > 1) {
+      let decrement = await pool.execute(
         "UPDATE `cart` SET quantity=? WHERE id_product=? and id_account=?",
         [quantity - 1, id_product, id_account]
       );
+      return res.status(200).json({
+        message: messageCart.successDecrementProductFromCart,
+      });
+    } else if (quantity === 1) {
+      let del = await pool.execute(
+        "DELETE FROM `cart` WHERE id_product=? and id_account=?",
+        [id_product, id_account]
+      );
+      return res.status(200).json({
+        message: messageCart.successDeleteProductFromCart,
+      });
+    } else {
+      return res.status(400).json({
+        message: messageCart.error,
+      });
     }
-    return res.status(200).json({
-      message: "Giảm thành công số lượng sản phẩm trong giỏ hàng",
-    });
   } catch (err) {
     console.log(err);
     return res.sendStatus(500);
@@ -272,13 +282,13 @@ let IncrementProductFromCart = async (req, res) => {
     // let size = req.body.data.size;
     console.log(id_product, id_account, quantity);
     if (quantity > 0) {
-      let giam = await pool.execute(
+      let increment = await pool.execute(
         " UPDATE `cart` SET quantity=? WHERE id_product=? and id_account=?",
         [quantity + 1, id_product, id_account]
       );
     }
     return res.status(200).json({
-      message: "Tăng thành công số lượng sản phẩm trong giỏ hàng",
+      message: messageCart.successIncrementProductFromCart,
     });
   } catch (err) {
     console.log(err);
